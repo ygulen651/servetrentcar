@@ -17,9 +17,9 @@ export function Header() {
       </Link>
       <nav className={open ? "nav open" : "nav"} aria-label="Site navigasyonu">
         <Link href="/">Ana Sayfa</Link>
+        <Link href="/#projeler">İnşaat</Link>
         <Link href="/ilanlar">Emlak</Link>
         <Link href="/arac-kiralama">Rent A Car</Link>
-        <Link href="/#projeler">İnşaat</Link>
         <Link href="/#hakkimizda">Hakkımızda</Link>
         <Link href="/#iletisim">İletişim</Link>
       </nav>
