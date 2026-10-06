@@ -64,7 +64,8 @@ export function Footer() {
         <div>
           <h3>İletişim</h3>
           <p>Rauf Denktaş Mah. 2. İstasyon Cad. No: 39/A, Karaman</p>
-          <a href="tel:+905354266235">0535 426 62 35</a>
+          <a href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">0535 426 62 35</a>
+          <a href="tel:+905051977070" aria-label="Araç kiralama telefonu: 0505 197 70 70">0505 197 70 70</a>
         </div>
       </div>
       <div className="copyright">
