@@ -5,6 +5,7 @@ import { Footer, Header, WhatsApp } from "../components";
 import { getFirebaseRentalCars } from "@/lib/firebase-data";
 
 const phoneNumber = "+905354266235";
+const vehiclePhoneNumber = "+905051977070";
 const whatsappNumber = "905354266235";
 
 type RentalCar = Awaited<ReturnType<typeof getFirebaseRentalCars>>[number];
@@ -38,6 +39,7 @@ function VehicleCard({ car }: { car: RentalCar }) {
             <p className="rental-note">Aradığınızda <strong>{car.id}</strong> araç kodunu söylemeniz yeterli.</p>
             <div className="rental-actions">
               <a className="button gold" href={`tel:${phoneNumber}`}><Phone size={17} /> Bu araç için ara</a>
+              <a className="button secondary-phone-button" href={`tel:${vehiclePhoneNumber}`}><Phone size={17} /> 0505 197 70 70</a>
               <a className="button whatsapp-button" href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noreferrer">
                 <MessageCircle size={17} /> WhatsApp
               </a>
@@ -77,7 +79,7 @@ export default async function CarRentalPage() {
           <div className="shell">
             <div><Check size={20} /><strong>{availableCars.length} araç</strong><span>şu an kiralamaya hazır</span></div>
             <p>Müsaitlik bilgileri güncel filoya göre gösterilir. Kesin rezervasyon için bizi arayın.</p>
-            <a href={`tel:${phoneNumber}`}><Phone size={17} /> 0535 426 62 35</a>
+            <div className="rental-phone-list"><a href={`tel:${phoneNumber}`}><Phone size={17} /> 0535 426 62 35</a><a href={`tel:${vehiclePhoneNumber}`}><Phone size={17} /> 0505 197 70 70</a></div>
           </div>
         </section>
 

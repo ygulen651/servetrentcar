@@ -7,6 +7,7 @@ import { getFirebaseItem } from "@/lib/firebase-data";
 import { SocialShare } from "../../social-share";
 
 const phoneNumber = "+905354266235";
+const vehiclePhoneNumber = "+905051977070";
 const whatsappNumber = "905354266235";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +34,7 @@ export default async function VehicleDetailPage({ params }: PageProps<"/arac-kir
         <article className="detail-description"><p className="eyebrow dark">ARAÇ AÇIKLAMASI</p><h2>Konforlu yolculuk için hazır</h2><p>{item.description || "Araç özellikleri ve kiralama şartları hakkında ayrıntılı bilgi için bizimle iletişime geçebilirsiniz."}</p></article></div>
       <aside className="detail-summary"><span className={`detail-status ${available ? "available" : "rented"}`}>{available ? "Şu an boşta" : "Şu an kirada"}</span><h1>{item.title}</h1><p className="detail-location"><CalendarCheck2 />{item.locationOrYear} model</p><strong className="detail-price">{item.price.toLocaleString("tr-TR")} TL</strong><small className="price-note">Güncel fiyat ve kiralama süresi için arayın.</small>
         <dl><div><dt><CalendarCheck2 /> Model yılı</dt><dd>{item.locationOrYear}</dd></div><div><dt><CarFront /> Kategori</dt><dd>Kiralık araç</dd></div><div><dt>{available ? <CheckCircle2 /> : <Clock3 />} Durum</dt><dd>{available ? "Müsait" : "Kirada"}</dd></div></dl>
-        <div className="detail-actions"><a className="button gold" href={`tel:${phoneNumber}`}><Phone /> Bu araç için ara</a><a className="button whatsapp-button" href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noreferrer"><MessageCircle /> WhatsApp</a></div>
+        <div className="detail-actions vehicle-detail-actions"><a className="button gold" href={`tel:${phoneNumber}`}><Phone /> 0535 426 62 35</a><a className="button secondary-phone-button" href={`tel:${vehiclePhoneNumber}`}><Phone /> 0505 197 70 70</a><a className="button whatsapp-button" href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noreferrer"><MessageCircle /> WhatsApp</a></div>
       </aside>
     </section>
   </main><Footer /><WhatsApp /></>;
