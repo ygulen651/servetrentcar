@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { ArrowRight, Building2, CarFront, CheckCircle2, HardHat, MapPin, Phone } from "lucide-react";
 import { Footer, Header, WhatsApp } from "./components";
-import { projects, turkeyCities } from "./data";
-import { getFirebaseListings } from "@/lib/firebase-data";
+import { HomeSearch } from "./home-search";
+import { projects } from "./data";
+import { getFirebaseListings, getFirebaseSearchItems } from "@/lib/firebase-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const listings = (await getFirebaseListings()).slice(0, 3);
+  const [listings, searchItems] = await Promise.all([
+    getFirebaseListings().then((items) => items.slice(0, 3)),
+    getFirebaseSearchItems(),
+  ]);
   return <div className="home-page"><Header /><main>
     <section className="hero">
       <div className="hero-overlay" />
@@ -20,31 +24,7 @@ export default async function Home() {
           <a className="button ghost fade-in-up" href="tel:+905354266235"><Phone size={18}/> Hemen Ara</a>
         </div>
       </div>
-      <div className="search-panel shell">
-        <div>
-          <label>Hizmet</label>
-          <select>
-            <option>Emlak</option>
-            <option>Araç Kiralama</option>
-          </select>
-        </div>
-        <div>
-          <label>İşlem Türü</label>
-          <select>
-            <option>Tümü</option>
-            <option>Satılık</option>
-            <option>Kiralık</option>
-          </select>
-        </div>
-        <div>
-          <label>Konum</label>
-          <select defaultValue="Karaman">
-            <option value="">Tüm Türkiye</option>
-            {turkeyCities.map(city => <option key={city}>{city}</option>)}
-          </select>
-        </div>
-        <Link href="/ilanlar" className="search-button">İlan Ara <ArrowRight size={18}/></Link>
-      </div>
+      <HomeSearch items={searchItems} />
     </section>
 
     <section className="intro-strip"><div className="shell"><p>Aradığınız hizmete hızlıca ulaşın</p><nav aria-label="Hizmet bağlantıları"><Link href="/ilanlar"><Building2/> Emlak ilanları <ArrowRight/></Link><Link href="#projeler"><HardHat/> İnşaat projeleri <ArrowRight/></Link><Link href="/arac-kiralama"><CarFront/> Kiralık araçlar <ArrowRight/></Link></nav></div></section>

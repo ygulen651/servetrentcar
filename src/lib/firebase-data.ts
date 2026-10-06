@@ -44,3 +44,18 @@ export async function getFirebaseRentalCars() {
     image: item.imageUrls?.[0] ?? "",
   }));
 }
+
+export async function getFirebaseSearchItems() {
+  const items = await getItems();
+  return items.map((item) => ({
+    id: item.id,
+    category: item.category,
+    title: item.title,
+    status: item.status,
+    location: item.locationOrYear,
+    description: item.description ?? "",
+    price: `${item.price.toLocaleString("tr-TR")} TL`,
+    image: item.imageUrls?.[0] ?? "",
+    href: item.category === "Araç" ? `/arac-kiralama/${item.id}` : `/ilanlar/${item.id}`,
+  }));
+}
