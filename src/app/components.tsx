@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Building2, CarFront, Menu, MessageCircle, Phone, X } from "lucide-react";
+import { Building2, CarFront, House, Menu, MessageCircle, X } from "lucide-react";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -25,7 +25,7 @@ export function Header() {
       </nav>
       <div className="header-phones" aria-label="Telefon numaraları">
         <a className="header-phone" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">
-          <Phone size={16} /> 0535 426 62 35
+          <House size={16} /> 0535 426 62 35
         </a>
         <a className="header-phone" href="tel:+905051977070" aria-label="Araç kiralama telefonu: 0505 197 70 70">
           <CarFront size={16} /> 0505 197 70 70
