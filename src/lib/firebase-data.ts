@@ -4,6 +4,7 @@ import { adminDb } from "./firebase-admin";
 
 export type StoredItem = {
   category: "Emlak" | "Araç";
+  propertyType?: "Konut" | "Arsa" | "Tarla" | "İş Yeri";
   title: string;
   price: number;
   status: string;
@@ -28,7 +29,7 @@ export async function getFirebaseItem(id: string): Promise<StoredItemWithId | nu
 export async function getFirebaseListings() {
   const items = await getItems();
   return items.filter((item) => item.category === "Emlak").map((item) => ({
-    id: item.id, type: "Emlak", badge: item.status, title: item.title,
+    id: item.id, type: item.propertyType ?? "Konut", propertyType: item.propertyType ?? "Konut", badge: item.status, title: item.title,
     location: item.locationOrYear, price: `${item.price.toLocaleString("tr-TR")} TL`,
     meta: item.description ? [item.description] : [], image: item.imageUrls?.[0] ?? "",
   }));
@@ -50,6 +51,7 @@ export async function getFirebaseSearchItems() {
   return items.map((item) => ({
     id: item.id,
     category: item.category,
+    propertyType: item.propertyType ?? "",
     title: item.title,
     status: item.status,
     location: item.locationOrYear,

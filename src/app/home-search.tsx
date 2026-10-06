@@ -7,6 +7,7 @@ import { ArrowRight, Building2, CarFront, MapPin, Search, X } from "lucide-react
 export type SearchItem = {
   id: string;
   category: "Emlak" | "Araç";
+  propertyType: string;
   title: string;
   status: string;
   location: string;
@@ -25,7 +26,7 @@ export function HomeSearch({ items }: { items: SearchItem[] }) {
   const normalizedQuery = normalize(query);
   const results = useMemo(() => {
     if (!normalizedQuery) return [];
-    return items.filter((item) => normalize(`${item.category} ${item.category === "Araç" ? "araba otomobil rent a car kiralık" : "emlak ev daire arsa"} ${item.title} ${item.status} ${item.location} ${item.description}`).includes(normalizedQuery)).slice(0, 6);
+    return items.filter((item) => normalize(`${item.category} ${item.propertyType} ${item.category === "Araç" ? "araba otomobil rent a car kiralık" : "emlak ev daire arsa tarla iş yeri konut"} ${item.title} ${item.status} ${item.location} ${item.description}`).includes(normalizedQuery)).slice(0, 6);
   }, [items, normalizedQuery]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -44,7 +45,7 @@ export function HomeSearch({ items }: { items: SearchItem[] }) {
       <div className="search-results-head"><strong>{results.length ? `${results.length} sonuç bulundu` : "Sonuç bulunamadı"}</strong><small>{results.length ? "Detayları görmek için seçin" : "Farklı bir kelime deneyin"}</small></div>
       {results.map((item) => <Link href={item.href} className="search-result" key={item.id}>
         <span className="search-result-image" role="img" aria-label={`${item.title} görseli`} style={{ backgroundImage: `url(${item.image})` }}>{!item.image && (item.category === "Araç" ? <CarFront /> : <Building2 />)}</span>
-        <span className="search-result-copy"><small>{item.category} · {item.status}</small><strong>{item.title}</strong><span><MapPin />{item.location}</span></span>
+        <span className="search-result-copy"><small>{item.propertyType || item.category} · {item.status}</small><strong>{item.title}</strong><span><MapPin />{item.location}</span></span>
         <b>{item.price}</b><ArrowRight />
       </Link>)}
     </div>}

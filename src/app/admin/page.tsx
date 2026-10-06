@@ -9,7 +9,7 @@ import { auth } from "@/lib/firebase";
 type ListingCategory = "Emlak" | "Araç";
 type View = "overview" | ListingCategory;
 type SelectedPhoto = { file: File; name: string; url: string };
-type FirebaseItem = { id: string; category: ListingCategory; title: string; price: number; status: string; locationOrYear: string; description?: string; imageUrls?: string[] };
+type FirebaseItem = { id: string; category: ListingCategory; propertyType?: string; title: string; price: number; status: string; locationOrYear: string; description?: string; imageUrls?: string[] };
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -89,7 +89,7 @@ export default function AdminPage() {
 
   const filteredItems = useMemo(() => items.filter((item) => {
     const needle = search.trim().toLocaleLowerCase("tr-TR");
-    return (view === "overview" || item.category === view) && (!needle || `${item.title} ${item.locationOrYear} ${item.id}`.toLocaleLowerCase("tr-TR").includes(needle));
+    return (view === "overview" || item.category === view) && (!needle || `${item.title} ${item.propertyType ?? ""} ${item.locationOrYear} ${item.id}`.toLocaleLowerCase("tr-TR").includes(needle));
   }), [items, search, view]);
   const emlakCount = items.filter((item) => item.category === "Emlak").length;
   const carCount = items.filter((item) => item.category === "Araç").length;
@@ -118,7 +118,7 @@ export default function AdminPage() {
         <div className="admin-toolbar"><div><h2>{title}</h2><p>İçerikleri arayın, düzenleyin veya yayından kaldırın.</p></div><button onClick={() => openCreate(view === "Araç" ? "Araç" : "Emlak")}><Plus /> Yeni {view === "Araç" ? "Araç" : "İlan"}</button></div>
         {message && <p className="admin-message" role="status">{message}</p>}
         <div className="admin-table"><div className="table-search"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Başlık, konum veya kod ara..." /></div><div className="table-scroll"><table><thead><tr><th>İçerik</th><th>Tür</th><th>Durum</th><th>Fiyat</th><th>İşlemler</th></tr></thead><tbody>
-          {filteredItems.map((item) => <tr key={item.id}><td><div className="table-listing"><div style={{ backgroundImage: `url(${item.imageUrls?.[0] ?? ""})` }}>{!item.imageUrls?.[0] && <Camera />}</div><span><strong>{item.title}</strong><small>{item.locationOrYear} · {item.id}</small></span></div></td><td>{item.category}</td><td><span className="status">{item.category === "Araç" ? (item.status === "rented" ? "Kirada" : "Boşta") : item.status}</span></td><td><strong>{item.price.toLocaleString("tr-TR")} TL</strong></td><td><div className="actions"><button title="Düzenle" onClick={() => openEdit(item)}><Pencil /></button><button title="Sil" disabled={busy} onClick={() => deleteItem(item)}><Trash2 /></button></div></td></tr>)}
+          {filteredItems.map((item) => <tr key={item.id}><td><div className="table-listing"><div style={{ backgroundImage: `url(${item.imageUrls?.[0] ?? ""})` }}>{!item.imageUrls?.[0] && <Camera />}</div><span><strong>{item.title}</strong><small>{item.locationOrYear} · {item.id}</small></span></div></td><td>{item.category === "Emlak" ? (item.propertyType ?? "Konut") : item.category}</td><td><span className="status">{item.category === "Araç" ? (item.status === "rented" ? "Kirada" : "Boşta") : item.status}</span></td><td><strong>{item.price.toLocaleString("tr-TR")} TL</strong></td><td><div className="actions"><button title="Düzenle" onClick={() => openEdit(item)}><Pencil /></button><button title="Sil" disabled={busy} onClick={() => deleteItem(item)}><Trash2 /></button></div></td></tr>)}
           {filteredItems.length === 0 && <tr><td className="empty-state" colSpan={5}>Bu görünümde kayıt bulunamadı. Yeni bir içerik ekleyebilirsiniz.</td></tr>}
         </tbody></table></div></div>
       </section>
@@ -126,6 +126,7 @@ export default function AdminPage() {
     {modal && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && closeModal()}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title"><div className="modal-head"><div><h2 id="item-modal-title">{editing ? "Kaydı Düzenle" : category === "Araç" ? "Yeni Araç Ekle" : "Yeni İlan Ekle"}</h2><p>Burada kaydettiğiniz bilgiler sitede yayınlanır.</p></div><button onClick={closeModal} aria-label="Pencereyi kapat">×</button></div>
       <form key={editing?.id ?? "new"} onSubmit={saveItem}>
         <div className="form-row"><label>Kategori<select value={category} onChange={(event) => setCategory(event.target.value as ListingCategory)}><option>Emlak</option><option>Araç</option></select></label><label>{category === "Araç" ? "Müsaitlik" : "İşlem türü"}<select name="status" defaultValue={editing?.status ?? (category === "Araç" ? "available" : "Satılık")}>{category === "Araç" ? <><option value="available">Şu an boşta</option><option value="rented">Şu an kirada</option></> : <><option>Satılık</option><option>Kiralık</option></>}</select></label></div>
+        {category === "Emlak" && <label>Emlak türü<select name="propertyType" defaultValue={editing?.propertyType ?? "Konut"}><option>Konut</option><option>Arsa</option><option>Tarla</option><option>İş Yeri</option></select></label>}
         <label>{category === "Araç" ? "Araç adı / modeli" : "İlan başlığı"}<input name="title" defaultValue={editing?.title ?? ""} required /></label>
         <div className="form-row"><label>Fiyat (TL)<input name="price" type="number" min="0" defaultValue={editing?.price ?? ""} required /></label><label>{category === "Araç" ? "Model yılı" : "Konum"}{category === "Araç" ? <input name="locationOrYear" type="number" defaultValue={editing?.locationOrYear ?? new Date().getFullYear()} required /> : <select name="locationOrYear" defaultValue={editing?.locationOrYear ?? "Karaman"}>{turkeyCities.map((city) => <option key={city}>{city}</option>)}</select>}</label></div>
         <label>Açıklama<textarea name="description" rows={4} defaultValue={editing?.description ?? ""} placeholder="Öne çıkan özellikleri ve detayları yazın." /></label>

@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     const user = await requireUser(request);
     const form = await request.formData();
     const category = String(form.get("category") ?? "");
+    const propertyType = String(form.get("propertyType") ?? "");
     const title = String(form.get("title") ?? "").trim();
     const price = Number(form.get("price"));
     const status = String(form.get("status") ?? "");
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     const description = String(form.get("description") ?? "").trim();
     const photos = form.getAll("photos").filter((item): item is File => item instanceof File);
 
-    if (!(["Emlak", "Araç"].includes(category)) || !title || !Number.isFinite(price) || price < 0) {
+    if (!(["Emlak", "Araç"].includes(category)) || !title || !Number.isFinite(price) || price < 0 || (category === "Emlak" && !["Konut", "Arsa", "Tarla", "İş Yeri"].includes(propertyType))) {
       return Response.json({ error: "Zorunlu alanları kontrol edin." }, { status: 400 });
     }
     if (photos.length > 10 || photos.some((photo) => !allowedImageTypes.has(photo.type) || photo.size > 10_000_000)) {
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
 
       await document.set({
         category,
+        propertyType: category === "Emlak" ? propertyType : null,
         title,
         price,
         status,

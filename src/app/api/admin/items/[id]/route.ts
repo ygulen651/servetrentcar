@@ -15,20 +15,21 @@ export async function PATCH(request: Request, context: RouteContext<"/api/admin/
     const { id } = await context.params;
     const body = await request.json() as Record<string, unknown>;
     const category = String(body.category ?? "");
+    const propertyType = String(body.propertyType ?? "");
     const title = String(body.title ?? "").trim();
     const price = Number(body.price);
     const status = String(body.status ?? "");
     const locationOrYear = String(body.locationOrYear ?? "").trim();
     const description = String(body.description ?? "").trim();
 
-    if (!["Emlak", "Araç"].includes(category) || !title || !locationOrYear || !Number.isFinite(price) || price < 0) {
+    if (!["Emlak", "Araç"].includes(category) || !title || !locationOrYear || !Number.isFinite(price) || price < 0 || (category === "Emlak" && !["Konut", "Arsa", "Tarla", "İş Yeri"].includes(propertyType))) {
       return Response.json({ error: "Zorunlu alanları kontrol edin." }, { status: 400 });
     }
 
     const reference = adminDb.collection("items").doc(id);
     if (!(await reference.get()).exists) return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
 
-    await reference.update({ category, title, price, status, locationOrYear, description, updatedAt: FieldValue.serverTimestamp() });
+    await reference.update({ category, propertyType: category === "Emlak" ? propertyType : null, title, price, status, locationOrYear, description, updatedAt: FieldValue.serverTimestamp() });
     return Response.json({ id });
   } catch (error) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message.includes("ID token"))) {

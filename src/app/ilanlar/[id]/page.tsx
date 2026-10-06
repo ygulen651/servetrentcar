@@ -36,7 +36,7 @@ export default async function ListingDetailPage({ params }: PageProps<"/ilanlar/
         <article className="detail-description"><p className="eyebrow dark">İLAN AÇIKLAMASI</p><h2>İlan hakkında</h2><p>{item.description || "Bu ilanla ilgili ayrıntılı bilgi için bizimle iletişime geçebilirsiniz."}</p></article>
       </div>
       <aside className="detail-summary"><span className="detail-status">{item.status}</span><h1>{item.title}</h1><p className="detail-location"><MapPin />{item.locationOrYear}</p><strong className="detail-price">{item.price.toLocaleString("tr-TR")} TL</strong>
-        <dl><div><dt><Tag /> İlan türü</dt><dd>{item.status}</dd></div><div><dt><Building2 /> Kategori</dt><dd>Emlak</dd></div><div><dt><CheckCircle2 /> Durum</dt><dd>Yayında</dd></div></dl>
+        <dl><div><dt><Tag /> İşlem türü</dt><dd>{item.status}</dd></div><div><dt><Building2 /> Emlak türü</dt><dd>{item.propertyType ?? "Konut"}</dd></div><div><dt><CheckCircle2 /> Durum</dt><dd>Yayında</dd></div></dl>
         <div className="detail-actions"><a className="button gold" href={`tel:${phoneNumber}`}><Phone /> Hemen ara</a><a className="button whatsapp-button" href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noreferrer"><MessageCircle /> WhatsApp</a></div>
       </aside>
     </section>
