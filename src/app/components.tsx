@@ -60,7 +60,14 @@ export function Footer() {
           <a href="tel:+905354266235">0535 426 62 35</a>
         </div>
       </div>
-      <div className="copyright">© 2026 Servet İnşaat Emlak Rent A Car. Tüm hakları saklıdır.</div>
+      <div className="copyright">
+        <div className="shell copyright-inner">
+          <span>© 2026 Servet İnşaat Emlak Rent A Car. Tüm hakları saklıdır.</span>
+          <a href="https://www.entekdigital.com/" target="_blank" rel="noopener noreferrer">
+            Entek Digital tarafından yapılmıştır
+          </a>
+        </div>
+      </div>
     </footer>
   );
 }
