@@ -13,7 +13,7 @@ type RentalCar = Awaited<ReturnType<typeof getFirebaseRentalCars>>[number];
 function VehicleCard({ car }: { car: RentalCar }) {
   const isAvailable = car.status === "available";
   const message = encodeURIComponent(
-    `Merhaba, ${car.id} kodlu ${car.name} aracını kiralamak istiyorum. Müsaitlik ve fiyat bilgisi alabilir miyim?`,
+    `Merhaba, ${car.name} aracını kiralamak istiyorum. Müsaitlik ve fiyat bilgisi alabilir miyim?`,
   );
 
   return (
@@ -36,7 +36,7 @@ function VehicleCard({ car }: { car: RentalCar }) {
         <Link className="detail-link" href={`/arac-kiralama/${car.id}`}>Araç detaylarını incele <ArrowRight size={16} /></Link>
         {isAvailable ? (
           <>
-            <p className="rental-note">Aradığınızda <strong>{car.id}</strong> araç kodunu söylemeniz yeterli.</p>
+            <p className="rental-note">Bu aracı günlük, haftalık veya aylık olarak kiralayabilirsiniz.</p>
             <div className="rental-actions">
               <a className="button gold" href={`tel:${phoneNumber}`}><Phone size={17} /> Bu araç için ara</a>
               <a className="button secondary-phone-button" href={`tel:${vehiclePhoneNumber}`}><Phone size={17} /> 0505 197 70 70</a>
@@ -70,7 +70,7 @@ export default async function CarRentalPage() {
           <div className="shell rental-hero-content">
             <p className="eyebrow">SERVET RENT A CAR · KARAMAN</p>
             <h1>Aracınız hazır,<br />yolculuğunuz başlasın.</h1>
-            <p>Şu an müsait araçlarımızı görün, araç koduyla hemen arayın veya hazır WhatsApp mesajıyla bize ulaşın.</p>
+            <p>Araçlarımızı günlük, haftalık ve aylık kiralayabilirsiniz. Müsait araçlarımızı inceleyin, telefon veya WhatsApp ile bize ulaşın.</p>
             <a href="#musait-araclar" className="button gold">Boştaki araçları gör <ArrowRight size={18} /></a>
           </div>
         </section>
@@ -89,7 +89,7 @@ export default async function CarRentalPage() {
               <p className="eyebrow dark">HEMEN KİRALAYABİLİRSİNİZ</p>
               <h2>Şu an boştaki araçlarımız</h2>
             </div>
-            <p>Beğendiğiniz aracın kodunu söyleyin, işlemleri hızlıca başlatalım.</p>
+            <p>İhtiyacınıza uygun aracı seçin; günlük, haftalık veya aylık kiralama için bize ulaşın.</p>
           </div>
           <div className="rental-grid">
             {availableCars.map((car) => <VehicleCard car={car} key={car.id} />)}

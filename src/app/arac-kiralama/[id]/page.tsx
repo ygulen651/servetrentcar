@@ -25,10 +25,10 @@ export default async function VehicleDetailPage({ params }: PageProps<"/arac-kir
   if (!item || item.category !== "Araç") notFound();
   const images = item.imageUrls ?? [];
   const available = item.status !== "rented";
-  const message = encodeURIComponent(`Merhaba, ${item.id} kodlu ${item.title} aracı için müsaitlik ve fiyat bilgisi almak istiyorum.`);
+  const message = encodeURIComponent(`Merhaba, ${item.title} aracı için müsaitlik ve fiyat bilgisi almak istiyorum.`);
 
   return <><Header /><main className="detail-page">
-    <section className="detail-top shell"><Link href="/arac-kiralama"><ArrowLeft /> Araçlara dön</Link><div><span>Araç kodu: {item.id}</span><SocialShare title={item.title}/></div></section>
+    <section className="detail-top shell"><Link href="/arac-kiralama"><ArrowLeft /> Araçlara dön</Link><div><SocialShare title={item.title}/></div></section>
     <section className="detail-layout shell">
       <div className="detail-main"><div className={`detail-gallery ${images.length < 2 ? "single" : ""}`}><div className="detail-cover" role="img" aria-label={`${item.title} kapak fotoğrafı`} style={{ backgroundImage: `url(${images[0] ?? ""})` }}>{images.length === 0 && <CarFront />}</div>{images.slice(1, 3).map((image, index) => <div className="detail-thumb" role="img" aria-label={`${item.title} fotoğraf ${index + 2}`} style={{ backgroundImage: `url(${image})` }} key={image}>{index === 1 && images.length > 3 && <span>+{images.length - 3} fotoğraf</span>}</div>)}</div>
         <article className="detail-description"><p className="eyebrow dark">ARAÇ AÇIKLAMASI</p><h2>Konforlu yolculuk için hazır</h2><p>{item.description || "Araç özellikleri ve kiralama şartları hakkında ayrıntılı bilgi için bizimle iletişime geçebilirsiniz."}</p></article></div>
