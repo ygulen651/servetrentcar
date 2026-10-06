@@ -43,7 +43,7 @@ export function HomeSearch({ items }: { items: SearchItem[] }) {
     {normalizedQuery && <div className="search-results" aria-live="polite">
       <div className="search-results-head"><strong>{results.length ? `${results.length} sonuç bulundu` : "Sonuç bulunamadı"}</strong><small>{results.length ? "Detayları görmek için seçin" : "Farklı bir kelime deneyin"}</small></div>
       {results.map((item) => <Link href={item.href} className="search-result" key={item.id}>
-        <span className="search-result-image" style={{ backgroundImage: `url(${item.image})` }}>{!item.image && (item.category === "Araç" ? <CarFront /> : <Building2 />)}</span>
+        <span className="search-result-image" role="img" aria-label={`${item.title} görseli`} style={{ backgroundImage: `url(${item.image})` }}>{!item.image && (item.category === "Araç" ? <CarFront /> : <Building2 />)}</span>
         <span className="search-result-copy"><small>{item.category} · {item.status}</small><strong>{item.title}</strong><span><MapPin />{item.location}</span></span>
         <b>{item.price}</b><ArrowRight />
       </Link>)}

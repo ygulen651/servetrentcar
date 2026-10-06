@@ -73,7 +73,7 @@ export default async function Home() {
         </div>
         <div className="listing-grid">
           {listings.map((item) => <Link href={`/ilanlar/${item.id}`} className="listing-card fade-in" style={{ animationDelay: `${item.id.length * 0.1}s` }} key={item.id}>
-            <div className="listing-image" style={{ backgroundImage: `url(${item.image})` }}>
+            <div className="listing-image" role="img" aria-label={`${item.title} ilan fotoğrafı`} style={{ backgroundImage: `url(${item.image})` }}>
               <span>{item.badge}</span>
               <small>{item.id}</small>
             </div>
@@ -98,7 +98,7 @@ export default async function Home() {
         <p>Kaliteli malzeme, titiz işçilik ve zamanında teslim prensibiyle çalışıyoruz.</p>
       </div>
       <div className="project-grid">
-        {projects.map((p, i) => <article key={p.title} className="project-item fade-in-up" style={{ animationDelay: `${i * 0.2}s`, backgroundImage: `url(${p.image})` }}>
+        {projects.map((p, i) => <article key={p.title} className="project-item fade-in-up" role="img" aria-label={`${p.title} proje görseli`} style={{ animationDelay: `${i * 0.2}s`, backgroundImage: `url(${p.image})` }}>
           <div>
             <span>{i + 1}</span>
             <h3>{p.title}</h3>
@@ -126,6 +126,16 @@ export default async function Home() {
             <li><CheckCircle2/>Satış sonrası destek</li></ul>
           <a className="button gold" href="tel:+905354266235">Servet Saltan ile görüşün</a>
         </div>
+      </div>
+    </section>
+
+    <section className="faq-section shell" id="sss">
+      <div className="section-heading"><div><p className="eyebrow dark">SIK SORULAN SORULAR</p><h2>Merak ettikleriniz</h2></div><p>İlanlar, kiralama ve hizmet süreci hakkında kısa yanıtlar.</p></div>
+      <div className="faq-list">
+        <details><summary>Araçların müsaitlik bilgisi güncel mi?</summary><p>Panelde gösterilen durum güncel filoyu yansıtır. Kesin rezervasyon için bizi aramanızı öneririz.</p></details>
+        <details><summary>Emlak ilanları hakkında nasıl bilgi alabilirim?</summary><p>İlan detayındaki telefon veya WhatsApp butonunu kullanarak ilan koduyla doğrudan bilgi alabilirsiniz.</p></details>
+        <details><summary>Araç kiralamak için hangi bilgiler gerekiyor?</summary><p>Ehliyet, kimlik ve kiralama koşullarına uygunluk gerekir. Güncel şartlar için bizimle iletişime geçebilirsiniz.</p></details>
+        <details><summary>İnşaat projeleri için keşif yapıyor musunuz?</summary><p>Evet. İhtiyacı değerlendirmek ve görüşme planlamak için telefonla bize ulaşabilirsiniz.</p></details>
       </div>
     </section>
 

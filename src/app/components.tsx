@@ -53,6 +53,8 @@ export function Footer() {
           <Link href="/ilanlar">Emlak İlanları</Link>
           <Link href="/arac-kiralama">Kiralık Araçlar</Link>
           <Link href="/#projeler">Projelerimiz</Link>
+          <Link href="/gizlilik">Gizlilik Politikası</Link>
+          <Link href="/kullanim-sartlari">Kullanım Şartları</Link>
         </div>
         <div>
           <h3>İletişim</h3>

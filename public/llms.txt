@@ -1,0 +1,12 @@
+# Servet İnşaat Emlak Rent A Car
+
+Servet, Karaman'da emlak danışmanlığı, inşaat ve araç kiralama hizmetleri sunar.
+
+## Ana sayfalar
+- /: Kurumsal bilgiler ve güncel portföy
+- /ilanlar: Satılık ve kiralık emlak ilanları
+- /arac-kiralama: Kiralık araç filosu ve müsaitlik
+- /gizlilik: Gizlilik politikası
+- /kullanim-sartlari: Kullanım şartları
+
+İletişim: 0535 426 62 35

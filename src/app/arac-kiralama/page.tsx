@@ -1,5 +1,6 @@
 import { ArrowRight, CalendarCheck2, Check, Clock3, MessageCircle, Phone, UsersRound } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Footer, Header, WhatsApp } from "../components";
 import { getFirebaseRentalCars } from "@/lib/firebase-data";
 
@@ -16,7 +17,7 @@ function VehicleCard({ car }: { car: RentalCar }) {
 
   return (
     <article className={`rental-card ${isAvailable ? "is-available" : "is-rented"}`}>
-      <div className="rental-card-image" style={{ backgroundImage: `url(${car.image})` }}>
+      <div className="rental-card-image" role="img" aria-label={`${car.name} araç fotoğrafı`} style={{ backgroundImage: `url(${car.image})` }}>
         <span className={`availability-badge ${isAvailable ? "available" : "rented"}`}>
           {isAvailable ? <Check size={15} /> : <Clock3 size={15} />}
           {isAvailable ? "Şu an boşta" : "Şu an kirada"}
@@ -51,6 +52,7 @@ function VehicleCard({ car }: { car: RentalCar }) {
 }
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Kiralık Araçlar", description: "Karaman'da güncel ve müsait kiralık araç seçeneklerini inceleyin.", alternates: { canonical: "/arac-kiralama" } };
 
 export default async function CarRentalPage() {
   const allCars: RentalCar[] = await getFirebaseRentalCars();
