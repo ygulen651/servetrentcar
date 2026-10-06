@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, Building2, CarFront, CheckCircle2, HardHat, MapPin, Phone } from "lucide-react";
 import { Footer, Header, WhatsApp } from "./components";
-import { listings, projects, turkeyCities } from "./data";
+import { projects, turkeyCities } from "./data";
+import { getFirebaseListings } from "@/lib/firebase-data";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const listings = (await getFirebaseListings()).slice(0, 3);
   return <div className="home-page"><Header /><main>
     <section className="hero">
       <div className="hero-overlay" />
@@ -43,7 +47,7 @@ export default function Home() {
       </div>
     </section>
 
-    <section className="intro-strip"><div className="shell"><p>Aradığınız hizmete hızlıca ulaşın</p><nav aria-label="Hizmet bağlantıları"><Link href="/ilanlar"><Building2/> Emlak ilanları <ArrowRight/></Link><Link href="#projeler"><HardHat/> İnşaat projeleri <ArrowRight/></Link><Link href="/ilanlar?tur=arac"><CarFront/> Kiralık araçlar <ArrowRight/></Link></nav></div></section>
+    <section className="intro-strip"><div className="shell"><p>Aradığınız hizmete hızlıca ulaşın</p><nav aria-label="Hizmet bağlantıları"><Link href="/ilanlar"><Building2/> Emlak ilanları <ArrowRight/></Link><Link href="#projeler"><HardHat/> İnşaat projeleri <ArrowRight/></Link><Link href="/arac-kiralama"><CarFront/> Kiralık araçlar <ArrowRight/></Link></nav></div></section>
 
     <section className="services-wrap"><div className="services shell">
       <div className="section-heading">
@@ -73,7 +77,7 @@ export default function Home() {
           <span>03</span>
           <h3>Rent A Car</h3>
           <p>Bakımlı, konforlu ve ihtiyacınıza uygun kiralık araçlar.</p>
-          <Link href="/ilanlar?tur=arac">Araçları gör <ArrowRight size={16}/></Link>
+          <Link href="/arac-kiralama">Araçları gör <ArrowRight size={16}/></Link>
         </article>
       </div>
     </div></section>
@@ -88,7 +92,7 @@ export default function Home() {
           <Link href="/ilanlar">Tüm ilanlar <ArrowRight size={18}/></Link>
         </div>
         <div className="listing-grid">
-          {listings.map((item) => <article className="listing-card fade-in" style={{ animationDelay: `${item.id.length * 0.1}s` }} key={item.id}>
+          {listings.map((item) => <Link href={`/ilanlar/${item.id}`} className="listing-card fade-in" style={{ animationDelay: `${item.id.length * 0.1}s` }} key={item.id}>
             <div className="listing-image" style={{ backgroundImage: `url(${item.image})` }}>
               <span>{item.badge}</span>
               <small>{item.id}</small>
@@ -100,7 +104,7 @@ export default function Home() {
               <div className="meta">{item.meta.map(x => <span key={x}>{x}</span>)}</div>
               <div className="price">{item.price}<ArrowRight size={20}/></div>
             </div>
-          </article>)}
+          </Link>)}
         </div>
       </div>
     </section>

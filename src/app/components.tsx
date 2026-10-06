@@ -18,7 +18,7 @@ export function Header() {
       <nav className={open ? "nav open" : "nav"} aria-label="Site navigasyonu">
         <Link href="/">Ana Sayfa</Link>
         <Link href="/ilanlar">Emlak</Link>
-        <Link href="/ilanlar?tur=arac">Rent A Car</Link>
+        <Link href="/arac-kiralama">Rent A Car</Link>
         <Link href="/#projeler">İnşaat</Link>
         <Link href="/#hakkimizda">Hakkımızda</Link>
         <Link href="/#iletisim">İletişim</Link>
@@ -51,7 +51,7 @@ export function Footer() {
         <div>
           <h3>Hızlı Bağlantılar</h3>
           <Link href="/ilanlar">Emlak İlanları</Link>
-          <Link href="/ilanlar?tur=arac">Kiralık Araçlar</Link>
+          <Link href="/arac-kiralama">Kiralık Araçlar</Link>
           <Link href="/#projeler">Projelerimiz</Link>
         </div>
         <div>

@@ -9,6 +9,46 @@ export const projects = [
   { title: "Anahtar Teslim Yapılar", text: "Planlamadan teslimata özenli inşaat çözümleri.", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=85" },
 ];
 
+export const rentalCars = [
+  {
+    id: "SVT-A01",
+    name: "Ekonomik Sedan",
+    model: "Manuel · Dizel",
+    year: "2023",
+    seats: "5 kişilik",
+    status: "available" as const,
+    image: "https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&w=1400&q=88",
+  },
+  {
+    id: "SVT-A02",
+    name: "Konfor Sedan",
+    model: "Otomatik · Benzin",
+    year: "2024",
+    seats: "5 kişilik",
+    status: "available" as const,
+    image: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1400&q=88",
+  },
+  {
+    id: "SVT-A03",
+    name: "Şehir Otomatiği",
+    model: "Otomatik · Benzin",
+    year: "2023",
+    seats: "5 kişilik",
+    status: "available" as const,
+    image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1400&q=88",
+  },
+  {
+    id: "SVT-A04",
+    name: "Geniş Aile Sedanı",
+    model: "Otomatik · Dizel",
+    year: "2022",
+    seats: "5 kişilik",
+    status: "rented" as const,
+    availableFrom: "Yakında müsait",
+    image: "https://images.unsplash.com/photo-1504215680853-026ed2a45def?auto=format&fit=crop&w=1400&q=88",
+  },
+];
+
 export const turkeyCities = [
   "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", "Antalya", "Ardahan", "Artvin",
   "Aydın", "Balıkesir", "Bartın", "Batman", "Bayburt", "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur",
