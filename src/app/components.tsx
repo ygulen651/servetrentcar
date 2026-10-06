@@ -23,9 +23,14 @@ export function Header() {
         <Link href="/#hakkimizda">Hakkımızda</Link>
         <Link href="/#iletisim">İletişim</Link>
       </nav>
-      <a className="header-phone" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">
-        <Phone size={17} /> 0535 426 62 35
-      </a>
+      <div className="header-phones" aria-label="Telefon numaraları">
+        <a className="header-phone" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">
+          <Phone size={16} /> 0535 426 62 35
+        </a>
+        <a className="header-phone" href="tel:+905051977070" aria-label="Araç kiralama telefonu: 0505 197 70 70">
+          <CarFront size={16} /> 0505 197 70 70
+        </a>
+      </div>
       <button className="menu-button" onClick={() => setOpen(!open)} aria-label="Menü aç">
         {open ? <X /> : <Menu />}
       </button>

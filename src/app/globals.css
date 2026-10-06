@@ -82,3 +82,7 @@ body{background:#ece5da}.site-header{background:#f0e9de}.brand-mark{background:#
 
 /* Improved readability for navigation, rental cards and vehicle details */
 .topline{font-size:11px}.brand small{font-size:9px}.eyebrow{font-size:11px}.rental-kicker{font-size:11px}.availability-badge,.rental-card-image small{font-size:11px}.rental-specs{flex-wrap:wrap;font-size:12px}.rental-note{font-size:12px;line-height:1.65}.rental-title-row>p,.rented-heading>p{font-size:13px}.availability-summary span,.availability-summary p,.availability-summary a{font-size:12px}.detail-status{font-size:11px}.price-note{font-size:11px}.detail-summary dt,.detail-summary dd{font-size:12px}.detail-actions .button,.detail-link{font-size:12px}.footer-grid p,.footer-grid h3,.footer-grid a{font-size:12px}.copyright{font-size:11px}
+
+/* Header contact numbers */
+.header-phones{padding-left:22px;display:grid;gap:4px;border-left:1px solid var(--line)}.header-phones .header-phone{min-height:26px;padding:0;border:0;font-size:11px;white-space:nowrap}.header-phones .header-phone svg{color:#24745e}
+@media(max-width:920px){.header-phones{display:none}}
