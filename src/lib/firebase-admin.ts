@@ -8,14 +8,22 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 
 const serviceAccountPath = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_PATH;
+const serviceAccountJson = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON;
 
-if (!serviceAccountPath) {
-  throw new Error("FIREBASE_ADMIN_SERVICE_ACCOUNT_PATH ortam değişkeni tanımlı değil.");
+if (!serviceAccountJson && !serviceAccountPath) {
+  throw new Error(
+    "FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON veya FIREBASE_ADMIN_SERVICE_ACCOUNT_PATH ortam değişkenlerinden biri tanımlı olmalı.",
+  );
 }
 
-const serviceAccount = JSON.parse(
-  readFileSync(resolve(/* turbopackIgnore: true */ process.cwd(), serviceAccountPath), "utf8"),
-);
+const serviceAccount = serviceAccountJson
+  ? JSON.parse(serviceAccountJson)
+  : JSON.parse(
+      readFileSync(
+        resolve(/* turbopackIgnore: true */ process.cwd(), serviceAccountPath as string),
+        "utf8",
+      ),
+    );
 
 export const firebaseAdminApp =
   getApps()[0] ??
