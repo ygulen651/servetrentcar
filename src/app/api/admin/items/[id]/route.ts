@@ -2,6 +2,7 @@ import { adminAuth, adminDb, adminStorage } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 
 export const runtime = "nodejs";
+const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 async function requireUser(request: Request) {
   const authorization = request.headers.get("authorization");
@@ -13,23 +14,58 @@ export async function PATCH(request: Request, context: RouteContext<"/api/admin/
   try {
     await requireUser(request);
     const { id } = await context.params;
-    const body = await request.json() as Record<string, unknown>;
-    const category = String(body.category ?? "");
-    const propertyType = String(body.propertyType ?? "");
-    const title = String(body.title ?? "").trim();
-    const price = Number(body.price);
-    const status = String(body.status ?? "");
-    const locationOrYear = String(body.locationOrYear ?? "").trim();
-    const description = String(body.description ?? "").trim();
+    const form = await request.formData();
+    const category = String(form.get("category") ?? "");
+    const propertyType = String(form.get("propertyType") ?? "");
+    const title = String(form.get("title") ?? "").trim();
+    const price = Number(form.get("price"));
+    const status = String(form.get("status") ?? "");
+    const locationOrYear = String(form.get("locationOrYear") ?? "").trim();
+    const description = String(form.get("description") ?? "").trim();
+    const newPhotoIsCover = form.get("newPhotoIsCover") === "true";
+    const photos = form.getAll("photos").filter((item): item is File => item instanceof File);
+    let requestedPaths: string[];
+    try { requestedPaths = JSON.parse(String(form.get("existingImagePaths") ?? "[]")); }
+    catch { return Response.json({ error: "Fotoğraf listesi geçersiz." }, { status: 400 }); }
 
     if (!["Emlak", "Araç"].includes(category) || !title || !locationOrYear || !Number.isFinite(price) || price < 0 || (category === "Emlak" && !["Konut", "Arsa", "Tarla", "İş Yeri"].includes(propertyType))) {
       return Response.json({ error: "Zorunlu alanları kontrol edin." }, { status: 400 });
     }
 
     const reference = adminDb.collection("items").doc(id);
-    if (!(await reference.get()).exists) return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+    const snapshot = await reference.get();
+    if (!snapshot.exists) return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+    const currentPaths = (snapshot.data()?.imagePaths ?? []) as string[];
+    const currentUrls = (snapshot.data()?.imageUrls ?? []) as string[];
+    if (!Array.isArray(requestedPaths) || requestedPaths.some((path) => typeof path !== "string" || !currentPaths.includes(path))) {
+      return Response.json({ error: "Fotoğraf listesi geçersiz." }, { status: 400 });
+    }
+    if (requestedPaths.length + photos.length > 10 || photos.some((photo) => !allowedImageTypes.has(photo.type) || photo.size > 100_000_000)) {
+      return Response.json({ error: "En fazla 10 adet ve fotoğraf başına 100 MB sınırını kontrol edin." }, { status: 400 });
+    }
 
-    await reference.update({ category, propertyType: category === "Emlak" ? propertyType : null, title, price, status, locationOrYear, description, updatedAt: FieldValue.serverTimestamp() });
+    const bucket = adminStorage.bucket();
+    const newPaths: string[] = [];
+    const newUrls: string[] = [];
+    try {
+      for (const photo of photos) {
+        const extension = photo.type === "image/png" ? "png" : photo.type === "image/webp" ? "webp" : "jpg";
+        const path = `items/${id}/${crypto.randomUUID()}.${extension}`;
+        const file = bucket.file(path);
+        await file.save(Buffer.from(await photo.arrayBuffer()), { contentType: photo.type, resumable: false });
+        const [url] = await file.getSignedUrl({ action: "read", expires: "2500-01-01" });
+        newPaths.push(path); newUrls.push(url);
+      }
+      const keptUrls = requestedPaths.map((path) => currentUrls[currentPaths.indexOf(path)]).filter(Boolean);
+      const imagePaths = newPhotoIsCover ? [...newPaths, ...requestedPaths] : [...requestedPaths, ...newPaths];
+      const imageUrls = newPhotoIsCover ? [...newUrls, ...keptUrls] : [...keptUrls, ...newUrls];
+      await reference.update({ category, propertyType: category === "Emlak" ? propertyType : null, title, price, status, locationOrYear, description, imagePaths, imageUrls, updatedAt: FieldValue.serverTimestamp() });
+    } catch (error) {
+      await Promise.allSettled(newPaths.map((path) => bucket.file(path).delete()));
+      throw error;
+    }
+    const removedPaths = currentPaths.filter((path) => !requestedPaths.includes(path));
+    await Promise.allSettled(removedPaths.map((path) => bucket.file(path).delete()));
     return Response.json({ id });
   } catch (error) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message.includes("ID token"))) {
