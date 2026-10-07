@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
-import { Check, Save } from "lucide-react";
+import { Check, ImagePlus, Save } from "lucide-react";
 
 const fields = [
   ["Genel", "topLine", "Üst bilgi yazısı"], ["Genel", "brandSubtitle", "Logo alt yazısı"],
@@ -39,11 +39,34 @@ export function SiteContentEditor({ user }: { user: User }) {
     finally { setBusy(false); }
   }
 
+  async function uploadHero(event: ChangeEvent<HTMLInputElement>, key: "homeHeroImageUrl" | "rentalHeroImageUrl") {
+    const image = event.target.files?.[0];
+    event.target.value = "";
+    if (!image) return;
+    setBusy(true); setMessage("Hero görseli yükleniyor...");
+    try {
+      const token = await user.getIdToken();
+      const form = new FormData(); form.set("key", key); form.set("image", image);
+      const response = await fetch("/api/admin/site-content/image", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setContent((current) => ({ ...current, [key]: result.url }));
+      setMessage("Hero görseli güncellendi.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Hero görseli yüklenemedi."); }
+    finally { setBusy(false); }
+  }
+
   if (busy && Object.keys(content).length === 0) return <div className="content-editor-loading">Site yazıları yükleniyor...</div>;
   const groups = [...new Set(fields.map(([group]) => group))];
   return <form className="site-content-editor" onSubmit={save}>
     <div className="content-editor-head"><div><h2>Site Yazıları</h2><p>Sitede görünen başlık ve açıklamaları bölüm bölüm düzenleyin.</p></div><button type="submit" disabled={busy}><Save />{busy ? "Kaydediliyor..." : "Tümünü Kaydet"}</button></div>
     {message && <p className="admin-message" role="status"><Check />{message}</p>}
+    <section className="content-editor-group"><h3>Hero Görselleri</h3><div className="hero-image-editor">
+      {([ ["homeHeroImageUrl", "Ana sayfa hero görseli"], ["rentalHeroImageUrl", "Araç kiralama hero görseli"] ] as const).map(([key, label]) => <article key={key}>
+        <div className="hero-image-preview" role="img" aria-label={`${label} önizlemesi`} style={{ backgroundImage: `url(${content[key] ?? ""})` }} />
+        <div><strong>{label}</strong><small>Yatay, yüksek çözünürlüklü JPG, PNG veya WEBP kullanın. En fazla 10 MB.</small><label className="hero-upload-button"><ImagePlus />Görseli Değiştir<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={(event) => uploadHero(event, key)} /></label></div>
+      </article>)}
+    </div></section>
     {groups.map((group) => <section className="content-editor-group" key={group}><h3>{group}</h3><div className="content-editor-grid">
       {fields.filter(([fieldGroup]) => fieldGroup === group).map(([, key, label, kind]) => <label className={kind === "long" ? "wide" : ""} key={key}>{label}{kind === "long" ? <textarea rows={3} value={content[key] ?? ""} onChange={(event) => setContent((current) => ({ ...current, [key]: event.target.value }))} required /> : <input value={content[key] ?? ""} onChange={(event) => setContent((current) => ({ ...current, [key]: event.target.value }))} required />}</label>)}
     </div></section>)}

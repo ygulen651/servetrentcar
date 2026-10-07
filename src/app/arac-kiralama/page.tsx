@@ -65,7 +65,7 @@ export default async function CarRentalPage() {
     <>
       <Header content={content} />
       <main className="rental-page">
-        <section className="rental-hero">
+        <section className="rental-hero" style={{ backgroundImage: `url(${content.rentalHeroImageUrl})` }}>
           <div className="rental-hero-overlay" />
           <div className="shell rental-hero-content">
             <p className="eyebrow">{content.rentalHeroEyebrow}</p>

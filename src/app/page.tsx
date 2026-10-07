@@ -15,7 +15,7 @@ export default async function Home() {
     getSiteContent(),
   ]);
   return <div className="home-page"><Header content={content} /><main>
-    <section className="hero">
+    <section className="hero" style={{ backgroundImage: `url(${content.homeHeroImageUrl})` }}>
       <div className="hero-overlay" />
       <div className="hero-content shell">
         <p className="eyebrow fade-in-up">{content.homeHeroEyebrow}</p>

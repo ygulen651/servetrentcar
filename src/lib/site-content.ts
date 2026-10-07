@@ -3,6 +3,8 @@ import "server-only";
 import { adminDb } from "./firebase-admin";
 
 export const defaultSiteContent = {
+  homeHeroImageUrl: "/images/hero-sedan.png",
+  rentalHeroImageUrl: "/images/hero-sedan.png",
   topLine: "Karaman'da güvenilir çözüm ortağınız",
   brandSubtitle: "İNŞAAT · EMLAK · RENT A CAR",
   navHome: "Ana Sayfa",
