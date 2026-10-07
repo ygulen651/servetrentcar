@@ -32,7 +32,7 @@ export default function AdminPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const maxPhotoCount = category === "Emlak" ? 35 : 10;
+  const maxPhotoCount = category === "Emlak" ? 50 : 10;
 
   useEffect(() => onAuthStateChanged(auth, (nextUser) => {
     setUser(nextUser); setAuthReady(true);
