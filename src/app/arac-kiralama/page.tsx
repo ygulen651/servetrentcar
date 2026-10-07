@@ -21,9 +21,8 @@ function VehicleCard({ car }: { car: RentalCar }) {
       <div className="rental-card-image" role="img" aria-label={`${car.name} araç fotoğrafı`} style={{ backgroundImage: `url(${car.image})` }}>
         <span className={`availability-badge ${isAvailable ? "available" : "rented"}`}>
           {isAvailable ? <Check size={15} /> : <Clock3 size={15} />}
-          {isAvailable ? "Şu an boşta" : "Şu an kirada"}
+          {isAvailable ? "ŞU AN BOŞTA" : "ŞU AN KİRADA"}
         </span>
-        <small>{car.id}</small>
       </div>
       <div className="rental-card-body">
         <p className="rental-kicker">Servet Rent A Car</p>
@@ -87,7 +86,7 @@ export default async function CarRentalPage() {
           <div className="section-title-row rental-title-row">
             <div>
               <p className="eyebrow dark">HEMEN KİRALAYABİLİRSİNİZ</p>
-              <h2>Şu an boştaki araçlarımız</h2>
+              <h2>ŞU AN BOŞTAKİ ARAÇLARIMIZ</h2>
             </div>
             <p>İhtiyacınıza uygun aracı seçin; günlük, haftalık veya aylık kiralama için bize ulaşın.</p>
           </div>

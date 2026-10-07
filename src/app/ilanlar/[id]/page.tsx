@@ -5,6 +5,7 @@ import { ArrowLeft, Building2, CheckCircle2, MapPin, MessageCircle, Phone, Tag }
 import { Footer, Header, WhatsApp } from "../../components";
 import { getFirebaseItem } from "@/lib/firebase-data";
 import { SocialShare } from "../../social-share";
+import { DetailGallery } from "../../detail-gallery";
 
 const phoneNumber = "+905354266235";
 const whatsappNumber = "905354266235";
@@ -29,10 +30,7 @@ export default async function ListingDetailPage({ params }: PageProps<"/ilanlar/
     <section className="detail-top shell"><Link href="/ilanlar"><ArrowLeft /> İlanlara dön</Link><div><span>İlan kodu: {item.id}</span><SocialShare title={item.title}/></div></section>
     <section className="detail-layout shell">
       <div className="detail-main">
-        <div className={`detail-gallery ${images.length < 2 ? "single" : ""}`}>
-          <div className="detail-cover" role="img" aria-label={`${item.title} kapak fotoğrafı`} style={{ backgroundImage: `url(${images[0] ?? ""})` }}>{images.length === 0 && <Building2 />}</div>
-          {images.slice(1, 3).map((image, index) => <div className="detail-thumb" role="img" aria-label={`${item.title} fotoğraf ${index + 2}`} style={{ backgroundImage: `url(${image})` }} key={image}>{index === 1 && images.length > 3 && <span>+{images.length - 3} fotoğraf</span>}</div>)}
-        </div>
+        <DetailGallery images={images} title={item.title} />
         <article className="detail-description"><p className="eyebrow dark">İLAN AÇIKLAMASI</p><h2>İlan hakkında</h2><p>{item.description || "Bu ilanla ilgili ayrıntılı bilgi için bizimle iletişime geçebilirsiniz."}</p></article>
       </div>
       <aside className="detail-summary"><span className="detail-status">{item.status}</span><h1>{item.title}</h1><p className="detail-location"><MapPin />{item.locationOrYear}</p><strong className="detail-price">{item.price.toLocaleString("tr-TR")} TL</strong>
