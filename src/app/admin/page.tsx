@@ -91,7 +91,7 @@ export default function AdminPage() {
   }
 
   async function preparePhoto(file: File) {
-    if (file.size > 100_000_000) throw new Error("Fotoğraf 100 MB sınırını aşıyor.");
+    if (file.size > 600_000_000) throw new Error("Fotoğraf 600 MB sınırını aşıyor.");
     if (["image/jpeg", "image/png", "image/webp"].includes(file.type)) return file;
     const bitmap = await createImageBitmap(file);
     const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
@@ -99,7 +99,7 @@ export default function AdminPage() {
     canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
     canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close();
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", .86));
-    if (!blob || blob.size > 100_000_000) throw new Error("Fotoğraf telefonda işlenemedi.");
+    if (!blob || blob.size > 600_000_000) throw new Error("Fotoğraf telefonda işlenemedi.");
     return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "fotograf"}.jpg`, { type: "image/jpeg" });
   }
 
@@ -168,7 +168,7 @@ export default function AdminPage() {
         <label>Açıklama<textarea name="description" rows={4} defaultValue={editing?.description ?? ""} placeholder="Öne çıkan özellikleri ve detayları yazın." /></label>
         <div className="listing-photo-uploader"><div className="photo-upload-heading"><div><strong>Fotoğraflar</strong><small>İlk fotoğraf kapak olur. Fotoğraf ekleyebilir, silebilir veya kapağı değiştirebilirsiniz.</small></div><span>{existingPhotos.length + photos.length}/10</span></div>
           {existingPhotos.length > 0 && <div className="photo-preview-grid">{existingPhotos.map((photo, index) => <div className="photo-preview" key={photo.path || photo.url}><img src={photo.url} alt={`${index + 1}. mevcut fotoğraf`} />{!newPhotoIsCover && index === 0 && <span className="cover-label">Kapak</span>}<div className="photo-preview-actions">{(newPhotoIsCover || index > 0) && <button type="button" title="Kapak yap" onClick={() => makeExistingCover(index)}><Camera /></button>}<button type="button" title="Fotoğrafı sil" onClick={() => removeExistingPhoto(index)}><Trash2 /></button></div></div>)}</div>}
-          {existingPhotos.length + photos.length < 10 && <label className="upload"><ImagePlus /><strong>Telefondan veya bilgisayardan fotoğraf seçin</strong><small>Tüm görsel biçimleri · fotoğraf başına en fazla 100 MB</small><input type="file" accept="image/*" multiple onChange={addPhotos} /></label>}
+          {existingPhotos.length + photos.length < 10 && <label className="upload"><ImagePlus /><strong>Telefondan veya bilgisayardan fotoğraf seçin</strong><small>Tüm görsel biçimleri · fotoğraf başına en fazla 600 MB</small><input type="file" accept="image/*" multiple onChange={addPhotos} /></label>}
           {photos.length > 0 && <div className="photo-preview-grid">{photos.map((photo, index) => <div className="photo-preview" key={`${photo.name}-${index}`}><img src={photo.url} alt={`${index + 1}. yeni fotoğraf önizlemesi`} />{index === 0 && (newPhotoIsCover || existingPhotos.length === 0) && <span className="cover-label">Kapak</span>}<div className="photo-preview-actions">{(!(index === 0 && newPhotoIsCover) && (existingPhotos.length > 0 || index > 0)) && <button type="button" title="Kapak yap" onClick={() => makeNewCover(index)}><Camera /></button>}<button type="button" title="Kaldır" onClick={() => removePhoto(index)}><X /></button></div></div>)}</div>}
         </div>
         <div className="modal-actions"><button type="button" onClick={closeModal}>Vazgeç</button><button type="submit" disabled={busy}><Check />{busy ? "Kaydediliyor..." : editing ? "Değişiklikleri Kaydet" : "Yayınla"}</button></div>
