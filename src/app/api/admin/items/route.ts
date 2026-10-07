@@ -40,8 +40,9 @@ export async function POST(request: Request) {
     if (!(["Emlak", "Araç"].includes(category)) || !title || !Number.isFinite(price) || price < 0 || (category === "Emlak" && !["Konut", "Arsa", "Tarla", "İş Yeri"].includes(propertyType))) {
       return Response.json({ error: "Zorunlu alanları kontrol edin." }, { status: 400 });
     }
-    if (photos.length > 10 || photos.some((photo) => !allowedImageTypes.has(photo.type) || photo.size > 600_000_000)) {
-      return Response.json({ error: "En fazla 10 adet ve fotoğraf başına 600 MB sınırını kontrol edin." }, { status: 400 });
+    const maxPhotoCount = category === "Emlak" ? 35 : 10;
+    if (photos.length > maxPhotoCount || photos.some((photo) => !allowedImageTypes.has(photo.type) || photo.size > 600_000_000)) {
+      return Response.json({ error: `En fazla ${maxPhotoCount} adet ve fotoğraf başına 600 MB sınırını kontrol edin.` }, { status: 400 });
     }
 
     const document = adminDb.collection("items").doc();

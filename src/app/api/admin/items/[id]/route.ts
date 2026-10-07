@@ -40,8 +40,9 @@ export async function PATCH(request: Request, context: RouteContext<"/api/admin/
     if (!Array.isArray(requestedPaths) || requestedPaths.some((path) => typeof path !== "string" || !currentPaths.includes(path))) {
       return Response.json({ error: "Fotoğraf listesi geçersiz." }, { status: 400 });
     }
-    if (requestedPaths.length + photos.length > 10 || photos.some((photo) => !allowedImageTypes.has(photo.type) || photo.size > 600_000_000)) {
-      return Response.json({ error: "En fazla 10 adet ve fotoğraf başına 600 MB sınırını kontrol edin." }, { status: 400 });
+    const maxPhotoCount = category === "Emlak" ? 35 : 10;
+    if (requestedPaths.length + photos.length > maxPhotoCount || photos.some((photo) => !allowedImageTypes.has(photo.type) || photo.size > 600_000_000)) {
+      return Response.json({ error: `En fazla ${maxPhotoCount} adet ve fotoğraf başına 600 MB sınırını kontrol edin.` }, { status: 400 });
     }
 
     const bucket = adminStorage.bucket();

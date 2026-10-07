@@ -9,9 +9,13 @@ import { SiteContentEditor } from "./site-content-editor";
 
 type ListingCategory = "Emlak" | "Araç";
 type View = "overview" | "content" | ListingCategory;
-type SelectedPhoto = { file: File; name: string; url: string };
+type SelectedPhoto = { file: File; source: File; name: string; url: string };
 type ExistingPhoto = { path: string; url: string };
 type FirebaseItem = { id: string; category: ListingCategory; propertyType?: string; title: string; price: number; status: string; locationOrYear: string; description?: string; imagePaths?: string[]; imageUrls?: string[] };
+
+const MAX_SOURCE_PHOTO_SIZE = 600_000_000;
+const MAX_OPTIMIZED_PHOTO_SIZE = 350_000;
+const MAX_PHOTO_UPLOAD_PAYLOAD = 3_500_000;
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +32,7 @@ export default function AdminPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const maxPhotoCount = category === "Emlak" ? 35 : 10;
 
   useEffect(() => onAuthStateChanged(auth, (nextUser) => {
     setUser(nextUser); setAuthReady(true);
@@ -75,7 +80,12 @@ export default function AdminPage() {
         form.set("newPhotoIsCover", String(newPhotoIsCover));
         response = await authorizedFetch(`/api/admin/items/${editing.id}`, { method: "PATCH", body: form });
       } else response = await authorizedFetch("/api/admin/items", { method: "POST", body: form });
-      const result = await response.json();
+      const responseText = await response.text();
+      let result: { error?: string } = {};
+      try { result = responseText ? JSON.parse(responseText) : {}; }
+      catch {
+        throw new Error(response.status === 413 ? "Fotoğraflar gönderim sınırını aşıyor. Daha az fotoğrafla tekrar deneyin." : "Sunucudan geçersiz bir yanıt alındı.");
+      }
       if (!response.ok) throw new Error(result.error);
       const wasEditing = Boolean(editing); closeModal(); await loadItems(); setMessage(wasEditing ? "Kayıt güncellendi." : "Yeni kayıt yayına alındı.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "İşlem tamamlanamadı."); }
@@ -90,25 +100,47 @@ export default function AdminPage() {
     finally { setBusy(false); }
   }
 
-  async function preparePhoto(file: File) {
-    if (file.size > 600_000_000) throw new Error("Fotoğraf 600 MB sınırını aşıyor.");
-    if (["image/jpeg", "image/png", "image/webp"].includes(file.type)) return file;
+  async function preparePhoto(file: File, maxOptimizedSize: number) {
+    if (file.size > MAX_SOURCE_PHOTO_SIZE) throw new Error("Fotoğraf 600 MB sınırını aşıyor.");
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
-    canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close();
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", .86));
-    if (!blob || blob.size > 600_000_000) throw new Error("Fotoğraf telefonda işlenemedi.");
-    return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "fotograf"}.jpg`, { type: "image/jpeg" });
+    try {
+      let scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
+      let quality = .86;
+      while (scale >= .1) {
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Fotoğraf telefonda işlenemedi.");
+        context.fillStyle = "#fff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+        if (blob && blob.size <= maxOptimizedSize) {
+          return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "fotograf"}.jpg`, { type: "image/jpeg" });
+        }
+        if (quality > .56) quality -= .1;
+        else { scale *= .8; quality = .82; }
+      }
+      throw new Error("Fotoğraf gönderim için küçültülemedi.");
+    } finally {
+      bitmap.close();
+    }
   }
 
   async function addPhotos(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []).slice(0, 10 - existingPhotos.length - photos.length);
+    const files = Array.from(event.target.files ?? []).slice(0, maxPhotoCount - existingPhotos.length - photos.length);
     event.target.value = "";
     try {
-      const prepared = await Promise.all(files.map(preparePhoto));
-      setPhotos((current) => [...current, ...prepared.map((file) => ({ file, name: file.name, url: URL.createObjectURL(file) }))]);
+      const sources = [...photos.map((photo) => photo.source), ...files];
+      const optimizedSize = Math.min(MAX_OPTIMIZED_PHOTO_SIZE, Math.floor(MAX_PHOTO_UPLOAD_PAYLOAD / sources.length));
+      const prepared: SelectedPhoto[] = [];
+      for (const source of sources) {
+        const file = await preparePhoto(source, optimizedSize);
+        prepared.push({ file, source, name: file.name, url: URL.createObjectURL(file) });
+      }
+      photos.forEach((photo) => URL.revokeObjectURL(photo.url));
+      setPhotos(prepared);
       setMessage("");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Seçilen görsel biçimi bu cihazda açılamadı."); }
   }
@@ -166,9 +198,9 @@ export default function AdminPage() {
         <label>{category === "Araç" ? "Araç adı / modeli" : "İlan başlığı"}<input name="title" defaultValue={editing?.title ?? ""} required /></label>
         <div className="form-row"><label>Fiyat (TL)<input name="price" type="number" min="0" defaultValue={editing?.price ?? ""} required /></label><label>{category === "Araç" ? "Model yılı" : "Konum"}{category === "Araç" ? <input name="locationOrYear" type="number" defaultValue={editing?.locationOrYear ?? new Date().getFullYear()} required /> : <select name="locationOrYear" defaultValue={editing?.locationOrYear ?? "Karaman"}>{turkeyCities.map((city) => <option key={city}>{city}</option>)}</select>}</label></div>
         <label>Açıklama<textarea name="description" rows={4} defaultValue={editing?.description ?? ""} placeholder="Öne çıkan özellikleri ve detayları yazın." /></label>
-        <div className="listing-photo-uploader"><div className="photo-upload-heading"><div><strong>Fotoğraflar</strong><small>İlk fotoğraf kapak olur. Fotoğraf ekleyebilir, silebilir veya kapağı değiştirebilirsiniz.</small></div><span>{existingPhotos.length + photos.length}/10</span></div>
+        <div className="listing-photo-uploader"><div className="photo-upload-heading"><div><strong>Fotoğraflar</strong><small>İlk fotoğraf kapak olur. Fotoğraf ekleyebilir, silebilir veya kapağı değiştirebilirsiniz.</small></div><span>{existingPhotos.length + photos.length}/{maxPhotoCount}</span></div>
           {existingPhotos.length > 0 && <div className="photo-preview-grid">{existingPhotos.map((photo, index) => <div className="photo-preview" key={photo.path || photo.url}><img src={photo.url} alt={`${index + 1}. mevcut fotoğraf`} />{!newPhotoIsCover && index === 0 && <span className="cover-label">Kapak</span>}<div className="photo-preview-actions">{(newPhotoIsCover || index > 0) && <button type="button" title="Kapak yap" onClick={() => makeExistingCover(index)}><Camera /></button>}<button type="button" title="Fotoğrafı sil" onClick={() => removeExistingPhoto(index)}><Trash2 /></button></div></div>)}</div>}
-          {existingPhotos.length + photos.length < 10 && <label className="upload"><ImagePlus /><strong>Telefondan veya bilgisayardan fotoğraf seçin</strong><small>Tüm görsel biçimleri · fotoğraf başına en fazla 600 MB</small><input type="file" accept="image/*" multiple onChange={addPhotos} /></label>}
+          {existingPhotos.length + photos.length < maxPhotoCount && <label className="upload"><ImagePlus /><strong>Telefondan veya bilgisayardan fotoğraf seçin</strong><small>Tüm görsel biçimleri · fotoğraf başına en fazla 600 MB</small><input type="file" accept="image/*" multiple onChange={addPhotos} /></label>}
           {photos.length > 0 && <div className="photo-preview-grid">{photos.map((photo, index) => <div className="photo-preview" key={`${photo.name}-${index}`}><img src={photo.url} alt={`${index + 1}. yeni fotoğraf önizlemesi`} />{index === 0 && (newPhotoIsCover || existingPhotos.length === 0) && <span className="cover-label">Kapak</span>}<div className="photo-preview-actions">{(!(index === 0 && newPhotoIsCover) && (existingPhotos.length > 0 || index > 0)) && <button type="button" title="Kapak yap" onClick={() => makeNewCover(index)}><Camera /></button>}<button type="button" title="Kaldır" onClick={() => removePhoto(index)}><X /></button></div></div>)}</div>}
         </div>
         <div className="modal-actions"><button type="button" onClick={closeModal}>Vazgeç</button><button type="submit" disabled={busy}><Check />{busy ? "Kaydediliyor..." : editing ? "Değişiklikleri Kaydet" : "Yayınla"}</button></div>
