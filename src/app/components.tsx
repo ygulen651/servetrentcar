@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Building2, CarFront, House, Menu, MessageCircle, X } from "lucide-react";
+import type { SiteContent } from "@/lib/site-content";
 
-export function Header() {
+export function Header({ content }: { content?: SiteContent }) {
   const [open, setOpen] = useState(false);
   return <>
     <header className="site-header">
@@ -12,16 +13,16 @@ export function Header() {
         <span className="brand-mark">S</span>
         <span>
           <strong>SERVET</strong>
-          <small>İNŞAAT · EMLAK · RENT A CAR</small>
+          <small>{content?.brandSubtitle ?? "İNŞAAT · EMLAK · RENT A CAR"}</small>
         </span>
       </Link>
       <nav className={open ? "nav open" : "nav"} aria-label="Site navigasyonu">
-        <Link href="/">Ana Sayfa</Link>
-        <Link href="/#projeler">İnşaat</Link>
-        <Link href="/ilanlar">Emlak</Link>
-        <Link href="/arac-kiralama">Rent A Car</Link>
-        <Link href="/#hakkimizda">Hakkımızda</Link>
-        <Link href="/#iletisim">İletişim</Link>
+        <Link href="/">{content?.navHome ?? "Ana Sayfa"}</Link>
+        <Link href="/#projeler">{content?.navConstruction ?? "İnşaat"}</Link>
+        <Link href="/ilanlar">{content?.navRealEstate ?? "Emlak"}</Link>
+        <Link href="/arac-kiralama">{content?.navRental ?? "Rent A Car"}</Link>
+        <Link href="/#hakkimizda">{content?.navAbout ?? "Hakkımızda"}</Link>
+        <Link href="/#iletisim">{content?.navContact ?? "İletişim"}</Link>
       </nav>
       <div className="header-phones" aria-label="Telefon numaraları">
         <a className="header-phone" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">
@@ -36,7 +37,7 @@ export function Header() {
       </button>
     </header>
     <div className="topline">
-      <span>Karaman&apos;da güvenilir çözüm ortağınız</span>
+      <span>{content?.topLine ?? "Karaman'da güvenilir çözüm ortağınız"}</span>
       <span>
         <Building2 size={14} /> Emlak
         <CarFront size={14} /> Araç Kiralama
@@ -45,13 +46,13 @@ export function Header() {
   </>;
 }
 
-export function Footer() {
+export function Footer({ content }: { content?: SiteContent }) {
   return (
     <footer id="iletisim">
       <div className="footer-grid shell">
         <div>
           <div className="footer-brand">SERVET</div>
-          <p>İnşaat, emlak ve araç kiralamada güvenilir hizmet.</p>
+          <p>{content?.footerDescription ?? "İnşaat, emlak ve araç kiralamada güvenilir hizmet."}</p>
         </div>
         <div>
           <h3>Hızlı Bağlantılar</h3>
@@ -63,14 +64,14 @@ export function Footer() {
         </div>
         <div>
           <h3>İletişim</h3>
-          <p>Rauf Denktaş Mah. 2. İstasyon Cad. No: 39/A, Karaman</p>
+          <p>{content?.footerAddress ?? "Rauf Denktaş Mah. 2. İstasyon Cad. No: 39/A, Karaman"}</p>
           <a href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">0535 426 62 35</a>
           <a href="tel:+905051977070" aria-label="Araç kiralama telefonu: 0505 197 70 70">0505 197 70 70</a>
         </div>
       </div>
       <div className="copyright">
         <div className="shell copyright-inner">
-          <span>© 2026 Servet İnşaat Emlak Rent A Car. Tüm hakları saklıdır.</span>
+          <span>{content?.footerCopyright ?? "© 2026 Servet İnşaat Emlak Rent A Car. Tüm hakları saklıdır."}</span>
           <a href="https://www.entekdigital.com/" target="_blank" rel="noopener noreferrer">
             Entek Digital tarafından yapılmıştır
           </a>

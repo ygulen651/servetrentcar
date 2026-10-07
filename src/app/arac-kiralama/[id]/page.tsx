@@ -6,6 +6,7 @@ import { Footer, Header, WhatsApp } from "../../components";
 import { getFirebaseItem } from "@/lib/firebase-data";
 import { SocialShare } from "../../social-share";
 import { DetailGallery } from "../../detail-gallery";
+import { getSiteContent } from "@/lib/site-content";
 
 const phoneNumber = "+905354266235";
 const vehiclePhoneNumber = "+905051977070";
@@ -24,11 +25,12 @@ export default async function VehicleDetailPage({ params }: PageProps<"/arac-kir
   const { id } = await params;
   const item = await getFirebaseItem(id);
   if (!item || item.category !== "Araç") notFound();
+  const content = await getSiteContent();
   const images = item.imageUrls ?? [];
   const available = item.status !== "rented";
   const message = encodeURIComponent(`Merhaba, ${item.title} aracı için müsaitlik ve fiyat bilgisi almak istiyorum.`);
 
-  return <><Header /><main className="detail-page">
+  return <><Header content={content} /><main className="detail-page">
     <section className="detail-top shell"><Link href="/arac-kiralama"><ArrowLeft /> Araçlara dön</Link><div><SocialShare title={item.title}/></div></section>
     <section className="detail-layout shell">
       <div className="detail-main"><DetailGallery images={images} title={item.title} />
@@ -38,5 +40,5 @@ export default async function VehicleDetailPage({ params }: PageProps<"/arac-kir
         <div className="detail-actions vehicle-detail-actions"><a className="button gold" href={`tel:${phoneNumber}`}><Phone /> 0535 426 62 35</a><a className="button secondary-phone-button" href={`tel:${vehiclePhoneNumber}`}><Phone /> 0505 197 70 70</a><a className="button whatsapp-button" href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noreferrer"><MessageCircle /> WhatsApp</a></div>
       </aside>
     </section>
-  </main><Footer /><WhatsApp /></>;
+  </main><Footer content={content} /><WhatsApp /></>;
 }

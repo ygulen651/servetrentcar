@@ -4,24 +4,26 @@ import { Footer, Header, WhatsApp } from "./components";
 import { HomeSearch } from "./home-search";
 import { projects } from "./data";
 import { getFirebaseListings, getFirebaseSearchItems } from "@/lib/firebase-data";
+import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [listings, searchItems] = await Promise.all([
+  const [listings, searchItems, content] = await Promise.all([
     getFirebaseListings().then((items) => items.slice(0, 3)),
     getFirebaseSearchItems(),
+    getSiteContent(),
   ]);
-  return <div className="home-page"><Header /><main>
+  return <div className="home-page"><Header content={content} /><main>
     <section className="hero">
       <div className="hero-overlay" />
       <div className="hero-content shell">
-        <p className="eyebrow fade-in-up">KARAMAN&apos;DA YEREL VE GÜVENİLİR HİZMET</p>
-        <h1 className="fade-in-up">Servet İnşaat<br />Emlak & Rent A Car</h1>
-        <p className="hero-copy fade-in-up delay-2">Gayrimenkul, inşaat ve araç kiralama ihtiyaçlarınız için doğrudan, şeffaf ve hızlı çözümler.</p>
+        <p className="eyebrow fade-in-up">{content.homeHeroEyebrow}</p>
+        <h1 className="fade-in-up editable-lines">{content.homeHeroTitle}</h1>
+        <p className="hero-copy fade-in-up delay-2">{content.homeHeroText}</p>
         <div className="hero-actions fade-in-up delay-3">
-          <Link className="button gold fade-in-up" href="/ilanlar">İlanları İncele <ArrowRight size={18}/></Link>
-          <a className="button ghost fade-in-up" href="tel:+905354266235"><Phone size={18}/> Hemen Ara</a>
+          <Link className="button gold fade-in-up" href="/ilanlar">{content.homeListingsButton} <ArrowRight size={18}/></Link>
+          <a className="button ghost fade-in-up" href="tel:+905354266235"><Phone size={18}/> {content.homeCallButton}</a>
         </div>
       </div>
       <HomeSearch items={searchItems} />
@@ -32,31 +34,31 @@ export default async function Home() {
     <section className="services-wrap"><div className="services shell">
       <div className="section-heading">
         <div>
-          <p className="eyebrow dark">HİZMETLERİMİZ</p>
-          <h2>Tek çatı altında<br />üç güçlü hizmet</h2>
+          <p className="eyebrow dark">{content.servicesEyebrow}</p>
+          <h2 className="editable-lines">{content.servicesTitle}</h2>
         </div>
-        <p>İhtiyacınız ne olursa olsun, deneyim ve güvenle yanınızdayız.</p>
+        <p>{content.servicesText}</p>
       </div>
       <div className="service-grid">
         <article className="service-item fade-in-up" style={{ animationDelay: '0.1s' }}>
           <Building2 className="service-icon" />
           <span>01</span>
-          <h3>Emlak Danışmanlığı</h3>
-          <p>Satılık ve kiralık konut, arsa ve iş yeri seçenekleri.</p>
+          <h3>{content.realEstateTitle}</h3>
+          <p>{content.realEstateText}</p>
           <Link href="/ilanlar">İlanları gör <ArrowRight size={16}/></Link>
         </article>
         <article className="service-item fade-in-up" style={{ animationDelay: '0.2s' }}>
           <HardHat className="service-icon" />
           <span>02</span>
-          <h3>İnşaat Projeleri</h3>
-          <p>Planlamadan anahtar teslimine güvenilir yapı çözümleri.</p>
+          <h3>{content.constructionTitle}</h3>
+          <p>{content.constructionText}</p>
           <Link href="#projeler">Projeleri gör <ArrowRight size={16}/></Link>
         </article>
         <article className="service-item fade-in-up" style={{ animationDelay: '0.3s' }}>
           <CarFront className="service-icon" />
           <span>03</span>
-          <h3>Rent A Car</h3>
-          <p>Bakımlı, konforlu ve ihtiyacınıza uygun kiralık araçlar.</p>
+          <h3>{content.rentalServiceTitle}</h3>
+          <p>{content.rentalServiceText}</p>
           <Link href="/arac-kiralama">Araçları gör <ArrowRight size={16}/></Link>
         </article>
       </div>
@@ -93,9 +95,9 @@ export default async function Home() {
       <div className="section-heading">
         <div>
           <p className="eyebrow dark">SERVET İNŞAAT</p>
-          <h2>Sağlam temeller,<br />değerli yaşamlar</h2>
+          <h2 className="editable-lines">{content.projectsTitle}</h2>
         </div>
-        <p>Kaliteli malzeme, titiz işçilik ve zamanında teslim prensibiyle çalışıyoruz.</p>
+        <p>{content.projectsText}</p>
       </div>
       <div className="project-grid">
         {projects.map((p, i) => <article key={p.title} className="project-item fade-in-up" role="img" aria-label={`${p.title} proje görseli`} style={{ animationDelay: `${i * 0.2}s`, backgroundImage: `url(${p.image})` }}>
@@ -118,8 +120,8 @@ export default async function Home() {
         </div>
         <div>
           <p className="eyebrow">BİZİ TANIYIN</p>
-          <h2>Karaman&apos;da işinize değer katan güvenilir çözüm ortağı</h2>
-          <p>Servet İnşaat Emlak Rent A Car olarak gayrimenkul, yapı ve araç kiralama ihtiyaçlarınızda dürüst, hızlı ve çözüm odaklı hizmet sunuyoruz.</p>
+          <h2>{content.aboutTitle}</h2>
+          <p>{content.aboutText}</p>
           <ul>
             <li><CheckCircle2/>Yerel pazar deneyimi</li>
             <li><CheckCircle2/>Şeffaf ve güvenilir hizmet</li>
@@ -143,10 +145,10 @@ export default async function Home() {
       <div className="shell">
         <div>
           <p>Size uygun çözümü birlikte bulalım</p>
-          <h2>Eviniz, projeniz veya aracınız için hemen iletişime geçin.</h2>
+          <h2>{content.contactTitle}</h2>
         </div>
         <a className="button light" href="https://wa.me/905354266235">WhatsApp&apos;tan Yazın <ArrowRight size={18}/></a>
       </div>
     </section>
-  </main><Footer /><WhatsApp /></div>;
+  </main><Footer content={content} /><WhatsApp /></div>;
 }

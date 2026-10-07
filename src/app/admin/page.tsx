@@ -2,12 +2,13 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
-import { Building2, Camera, CarFront, Check, ChevronDown, Eye, ImagePlus, LayoutDashboard, LogOut, Menu, Pencil, Plus, Search, Settings, Trash2, X } from "lucide-react";
+import { Building2, Camera, CarFront, Check, ChevronDown, Eye, FileText, ImagePlus, LayoutDashboard, LogOut, Menu, Pencil, Plus, Search, Settings, Trash2, X } from "lucide-react";
 import { turkeyCities } from "../data";
 import { auth } from "@/lib/firebase";
+import { SiteContentEditor } from "./site-content-editor";
 
 type ListingCategory = "Emlak" | "Araç";
-type View = "overview" | ListingCategory;
+type View = "overview" | "content" | ListingCategory;
 type SelectedPhoto = { file: File; name: string; url: string };
 type FirebaseItem = { id: string; category: ListingCategory; propertyType?: string; title: string; price: number; status: string; locationOrYear: string; description?: string; imageUrls?: string[] };
 
@@ -93,7 +94,7 @@ export default function AdminPage() {
   }), [items, search, view]);
   const emlakCount = items.filter((item) => item.category === "Emlak").length;
   const carCount = items.filter((item) => item.category === "Araç").length;
-  const title = view === "overview" ? "Genel Bakış" : view === "Emlak" ? "Emlak İlanları" : "Araç Filosu";
+  const title = view === "overview" ? "Genel Bakış" : view === "content" ? "Site Yazıları" : view === "Emlak" ? "Emlak İlanları" : "Araç Filosu";
 
   if (!authReady) return <main className="admin-login"><p>Yönetim paneli yükleniyor...</p></main>;
   if (!user) return <main className="admin-login"><form onSubmit={login}>
@@ -109,18 +110,20 @@ export default function AdminPage() {
         <button className={view === "overview" ? "active" : ""} onClick={() => setView("overview")}><LayoutDashboard />Genel Bakış</button>
         <button className={view === "Emlak" ? "active" : ""} onClick={() => setView("Emlak")}><Building2 />Emlak İlanları <b>{emlakCount}</b></button>
         <button className={view === "Araç" ? "active" : ""} onClick={() => setView("Araç")}><CarFront />Araç Filosu <b>{carCount}</b></button>
+        <button className={view === "content" ? "active" : ""} onClick={() => setView("content")}><FileText />Site Yazıları</button>
         <a href="/" target="_blank"><Eye />Siteyi Görüntüle</a><a href="mailto:info@servetinsaat.com"><Settings />Destek</a>
       </nav><button className="logout" type="button" onClick={() => signOut(auth)}><LogOut />Çıkış Yap</button>
     </aside>
     <main className="admin-main"><header><button className="admin-menu" aria-label="Menüyü aç"><Menu /></button><div><h1>{title}</h1><p>{items.length} içerik panelden yönetiliyor.</p></div><button className="admin-user" title={user.email ?? "Yönetici"}>{(user.email?.slice(0, 2) ?? "SS").toUpperCase()} <ChevronDown /></button></header>
       <section className="admin-content">
+        {view === "content" ? <SiteContentEditor user={user} /> : <>
         <div className="stats"><article><span><Building2 /></span><div><small>Yayındaki emlak ilanı</small><strong>{emlakCount}</strong></div></article><article><span><CarFront /></span><div><small>Filodaki araç</small><strong>{carCount}</strong></div></article><article><span><Check /></span><div><small>Toplam yönetilen içerik</small><strong>{items.length}</strong></div></article></div>
         <div className="admin-toolbar"><div><h2>{title}</h2><p>İçerikleri arayın, düzenleyin veya yayından kaldırın.</p></div><button onClick={() => openCreate(view === "Araç" ? "Araç" : "Emlak")}><Plus /> Yeni {view === "Araç" ? "Araç" : "İlan"}</button></div>
         {message && <p className="admin-message" role="status">{message}</p>}
         <div className="admin-table"><div className="table-search"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Başlık, konum veya kod ara..." /></div><div className="table-scroll"><table><thead><tr><th>İçerik</th><th>Tür</th><th>Durum</th><th>Fiyat</th><th>İşlemler</th></tr></thead><tbody>
           {filteredItems.map((item) => <tr key={item.id}><td><div className="table-listing"><div style={{ backgroundImage: `url(${item.imageUrls?.[0] ?? ""})` }}>{!item.imageUrls?.[0] && <Camera />}</div><span><strong>{item.title}</strong><small>{item.locationOrYear} · {item.id}</small></span></div></td><td>{item.category === "Emlak" ? (item.propertyType ?? "Konut") : item.category}</td><td><span className="status">{item.category === "Araç" ? (item.status === "rented" ? "Kirada" : "Boşta") : item.status}</span></td><td><strong>{item.price.toLocaleString("tr-TR")} TL</strong></td><td><div className="actions"><button title="Düzenle" onClick={() => openEdit(item)}><Pencil /></button><button title="Sil" disabled={busy} onClick={() => deleteItem(item)}><Trash2 /></button></div></td></tr>)}
           {filteredItems.length === 0 && <tr><td className="empty-state" colSpan={5}>Bu görünümde kayıt bulunamadı. Yeni bir içerik ekleyebilirsiniz.</td></tr>}
-        </tbody></table></div></div>
+        </tbody></table></div></div></>}
       </section>
     </main>
     {modal && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && closeModal()}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title"><div className="modal-head"><div><h2 id="item-modal-title">{editing ? "Kaydı Düzenle" : category === "Araç" ? "Yeni Araç Ekle" : "Yeni İlan Ekle"}</h2><p>Burada kaydettiğiniz bilgiler sitede yayınlanır.</p></div><button onClick={closeModal} aria-label="Pencereyi kapat">×</button></div>

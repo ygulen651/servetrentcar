@@ -6,6 +6,7 @@ import { Footer, Header, WhatsApp } from "../../components";
 import { getFirebaseItem } from "@/lib/firebase-data";
 import { SocialShare } from "../../social-share";
 import { DetailGallery } from "../../detail-gallery";
+import { getSiteContent } from "@/lib/site-content";
 
 const phoneNumber = "+905354266235";
 const whatsappNumber = "905354266235";
@@ -23,10 +24,11 @@ export default async function ListingDetailPage({ params }: PageProps<"/ilanlar/
   const { id } = await params;
   const item = await getFirebaseItem(id);
   if (!item || item.category !== "Emlak") notFound();
+  const content = await getSiteContent();
   const images = item.imageUrls ?? [];
   const message = encodeURIComponent(`Merhaba, ${item.id} kodlu “${item.title}” ilanı hakkında bilgi almak istiyorum.`);
 
-  return <><Header /><main className="detail-page">
+  return <><Header content={content} /><main className="detail-page">
     <section className="detail-top shell"><Link href="/ilanlar"><ArrowLeft /> İlanlara dön</Link><div><span>İlan kodu: {item.id}</span><SocialShare title={item.title}/></div></section>
     <section className="detail-layout shell">
       <div className="detail-main">
@@ -38,5 +40,5 @@ export default async function ListingDetailPage({ params }: PageProps<"/ilanlar/
         <div className="detail-actions"><a className="button gold" href={`tel:${phoneNumber}`}><Phone /> Hemen ara</a><a className="button whatsapp-button" href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noreferrer"><MessageCircle /> WhatsApp</a></div>
       </aside>
     </section>
-  </main><Footer /><WhatsApp /></>;
+  </main><Footer content={content} /><WhatsApp /></>;
 }
