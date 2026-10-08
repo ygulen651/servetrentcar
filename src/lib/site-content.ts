@@ -3,10 +3,14 @@ import "server-only";
 import { adminDb } from "./firebase-admin";
 
 export const defaultSiteContent = {
-  homeHeroImageUrl: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=2200&q=90",
+  homeHeroImageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80",
+  homeHeroImageUrl2: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80",
+  homeHeroImageUrl3: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80",
+  homeHeroImageUrl4: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=80",
+  homeHeroImageUrl5: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=2000&q=80",
   rentalHeroImageUrl: "/images/hero-sedan.png",
   topLine: "Karaman'da güvenilir çözüm ortağınız",
-  brandSubtitle: "İNŞAAT · EMLAK · RENT A CAR",
+  brandSubtitle: "EMLAK · RENT A CAR · İNŞAAT",
   navHome: "Ana Sayfa",
   navConstruction: "İnşaat",
   navRealEstate: "Emlak",

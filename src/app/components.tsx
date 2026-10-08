@@ -2,47 +2,40 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Building2, CarFront, House, Menu, MessageCircle, X } from "lucide-react";
+import { Menu, MessageCircle, Phone, X } from "lucide-react";
 import type { SiteContent } from "@/lib/site-content";
 
 export function Header({ content }: { content?: SiteContent }) {
   const [open, setOpen] = useState(false);
   return <>
+    <div className="topline">
+      <span>{content?.topLine ?? "Karaman'da güvenilir çözüm ortağınız"}</span>
+      <span className="top-social"><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="Instagram">i</a></span>
+    </div>
     <header className="site-header">
-      <Link href="/" className="brand" aria-label="Servet ana sayfa">
-        <span className="brand-mark">S</span>
+      <Link href="/" className="brand" aria-label="Servet Emlak ana sayfa">
+        <span className="brand-mark">SE</span>
         <span>
-          <strong>SERVET</strong>
-          <small>{content?.brandSubtitle ?? "İNŞAAT · EMLAK · RENT A CAR"}</small>
+          <strong>SERVET EMLAK</strong>
+          <small>{content?.brandSubtitle ?? "EMLAK · RENT A CAR · İNŞAAT"}</small>
         </span>
       </Link>
       <nav className={open ? "nav open" : "nav"} aria-label="Site navigasyonu">
         <Link href="/">{content?.navHome ?? "Ana Sayfa"}</Link>
-        <Link href="/#projeler">{content?.navConstruction ?? "İnşaat"}</Link>
-        <Link href="/ilanlar">{content?.navRealEstate ?? "Emlak"}</Link>
-        <Link href="/arac-kiralama">{content?.navRental ?? "Rent A Car"}</Link>
-        <Link href="/#hakkimizda">{content?.navAbout ?? "Hakkımızda"}</Link>
+        <Link href="/#hakkimizda">Kurumsal</Link>
+        <Link href="/ilanlar">Kiralıklar</Link>
+        <Link href="/ilanlar">Satılıklar</Link>
+        <Link href="/arac-kiralama">Rent A Car</Link>
+        <Link href="/#blog">Blog</Link>
         <Link href="/#iletisim">{content?.navContact ?? "İletişim"}</Link>
       </nav>
       <div className="header-phones" aria-label="Telefon numaraları">
-        <a className="header-phone" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">
-          <House size={16} /> 0535 426 62 35
-        </a>
-        <a className="header-phone" href="tel:+905051977070" aria-label="Araç kiralama telefonu: 0505 197 70 70">
-          <CarFront size={16} /> 0505 197 70 70
-        </a>
+        <a className="header-phone" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35"><Phone size={18}/><span><small>BİZİ ARAYIN</small>0535 426 62 35</span></a>
       </div>
       <button className="menu-button" onClick={() => setOpen(!open)} aria-label="Menü aç">
         {open ? <X /> : <Menu />}
       </button>
     </header>
-    <div className="topline">
-      <span>{content?.topLine ?? "Karaman'da güvenilir çözüm ortağınız"}</span>
-      <span>
-        <Building2 size={14} /> Emlak
-        <CarFront size={14} /> Araç Kiralama
-      </span>
-    </div>
   </>;
 }
 

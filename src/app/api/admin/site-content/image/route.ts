@@ -3,7 +3,7 @@ import { adminAuth, adminDb, adminStorage } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
-const allowedKeys = new Set(["homeHeroImageUrl", "rentalHeroImageUrl"]);
+const allowedKeys = new Set(["homeHeroImageUrl", "homeHeroImageUrl2", "homeHeroImageUrl3", "homeHeroImageUrl4", "homeHeroImageUrl5", "rentalHeroImageUrl"]);
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 async function requireUser(request: Request) {

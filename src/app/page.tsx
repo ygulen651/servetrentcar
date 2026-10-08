@@ -1,146 +1,128 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CalendarCheck2, CarFront, CheckCircle2, HardHat, House, LandPlot, MapPin, Phone, Store, UsersRound } from "lucide-react";
+import { Open_Sans, Roboto_Condensed } from "next/font/google";
+import { Home as HomeIcon, Mail, MapPin, Phone, Play } from "lucide-react";
 import { Footer, Header, WhatsApp } from "./components";
-import { HomeSearch } from "./home-search";
-import { projects } from "./data";
-import { getFirebaseListings, getFirebaseRentalCars, getFirebaseSearchItems } from "@/lib/firebase-data";
+import { HomeBanner, type BannerSlide } from "./home-banner";
+import { ShowcaseMosaic } from "./showcase-mosaic";
+import { CallMe } from "./call-me";
+import "./home-v10.css";
+import { getFirebaseListings } from "@/lib/firebase-data";
 import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
+type Listing = Omit<Awaited<ReturnType<typeof getFirebaseListings>>[number], "type"> & { type: string };
+
+const openSans = Open_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-v10-sans" });
+const condensed = Roboto_Condensed({ subsets: ["latin", "latin-ext"], weight: ["400", "700"], variable: "--font-v10-cond" });
+
+const photo = (id: string, width = 900) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${width}&q=80`;
+const slides: BannerSlide[] = [
+  { image: photo("1600596542815-ffad4c1539a9", 2000), label: "Karaman'ın güvenilir emlak ofisi", top: "Karaman'ın güvenilir", bottom: "Servet Emlak", delay: 6000, transition: "slices" },
+  { image: photo("1600585154340-be6161a56a0c", 2000), label: "İlanlarımız en iyi şekilde sizlerle", top: <>İlanlarımız <strong>en iyi</strong> şekilde,</>, bottom: "Sizlerle.", delay: 4000, transition: "tiles" },
+  { image: photo("1512917774080-9991f1c4c750", 2000), label: "Emlak ihtiyaçlarınızın anahtarı bizde", top: "Emlak ihtiyaçlarınızın", bottom: "anahtarı bizde...", delay: 4000, transition: "curtain" },
+  { image: photo("1486406146926-c627a92ad1ab", 2000), label: "Siz isteyin biz bulalım", top: "Siz isteyin", bottom: "biz bulalım...", delay: 6000, transition: "fade", href: "/ilanlar" },
+  { image: photo("1545324418-cc1a3fa10c00", 2000), label: "Servet Emlak'tan satılık daireler", top: "Servet Emlak'tan", bottom: "Satılık Daireler", delay: 4000, transition: "slide", href: "/ilanlar" },
+];
+
+const fallback = [
+  { id: "ornek-1", type: "Müstakil", propertyType: "Konut", badge: "Kiralık", title: "Bahçelievler - Kiralık Müstakil Ev", location: "Bahçelievler", price: "18.500 TL", meta: ["4+1", "190 m²"], image: photo("1568605114967-8130f3a36994") },
+  { id: "ornek-2", type: "Müstakil", propertyType: "Konut", badge: "Kiralık", title: "Sultandere - Kiralık Müstakil", location: "Sultandere", price: "22.000 TL", meta: ["3+1", "160 m²"], image: photo("1570129477492-45c003edd2be") },
+  { id: "ornek-3", type: "Daire", propertyType: "Konut", badge: "Kiralık", title: "Hacıalibey - Kiralık Daire", location: "Hacıalibey", price: "14.000 TL", meta: ["2+1", "110 m²"], image: photo("1502672260266-1c1ef2d93688") },
+  { id: "ornek-4", type: "Daire", propertyType: "Konut", badge: "Kiralık", title: "Fatih - Kiralık Daire", location: "Fatih", price: "12.500 TL", meta: ["2+1", "95 m²"], image: photo("1522708323590-d24dbb6b0267") },
+  { id: "ornek-5", type: "Daire", propertyType: "Konut", badge: "Satılık", title: "Gökmeydan - Satılık Daire", location: "Gökmeydan", price: "3.850.000 TL", meta: ["3+1", "150 m²"], image: photo("1560448204-e02f11c3d0e2") },
+  { id: "ornek-6", type: "Dükkan", propertyType: "İş Yeri", badge: "Satılık", title: "Organize Sanayi - Satılık Dükkan", location: "Organize Sanayi Bölgesi", price: "6.250.000 TL", meta: ["210 m²"], image: photo("1441986300917-64674bd600d8") },
+  { id: "ornek-7", type: "Taş Ev", propertyType: "Konut", badge: "Satılık", title: "Osmangazi - Satılık Taş Ev", location: "Osmangazi", price: "2.950.000 TL", meta: ["4+1", "180 m²"], image: photo("1449844908441-8829872d2607") },
+  { id: "ornek-8", type: "Daire", propertyType: "Konut", badge: "Satılık", title: "Akarbaşı - Satılık Daire", location: "Akarbaşı", price: "2.400.000 TL", meta: ["2+1", "105 m²"], image: photo("1493809842364-78817add7ffb") },
+] satisfies Listing[];
+
+const posts = [
+  { title: "Evinizi rutubetten nasıl korursunuz?", category: "Aklınızda Bulunsun", image: photo("1484154218962-a197022b5858", 600), text: "Yaşam alanınızı nem ve rutubetten korumak için uygulanabilir öneriler." },
+  { title: "Neden bir emlak danışmanıyla çalışmalısınız?", category: "Genel", image: photo("1564013799919-ab600027ffc6", 600), text: "Doğru bilgi ve yerel deneyim, yatırım kararınızın değerini belirler." },
+  { title: "Kira mı, konut kredisi mi?", category: "Sektör Haberleri", image: photo("1580587771525-78b9dba3b914", 600), text: "Bütçenize uygun kararı verirken göz önünde bulundurmanız gerekenler." },
+  { title: "Ev alacaklar için kontrol listesi", category: "Haberler", image: photo("1600607687939-ce8a6c25118c", 600), text: "Tapudan konuma, satın almadan önce kontrol edilmesi gereken temel noktalar." },
+];
+
+const kinds = ["Konut", "İş Yeri", "Arsa", "Müstakil", "Bina", "Yazlık", "Villa", "Residence"];
+const districts = ["Merkez", "Ayrancı", "Başyayla", "Ermenek", "Kazımkarabekir", "Sarıveliler"];
+const rooms = ["1+0", "1+1", "2+1", "2+2", "3+1", "4+1", "5+1"];
+const href = (item: Listing) => item.id.startsWith("ornek-") ? "/ilanlar" : `/ilanlar/${item.id}`;
+
+function SearchFields({ prefix }: { prefix: string }) {
+  return <>
+    <label htmlFor={`${prefix}-no`}>Emlak Kodu:</label><input id={`${prefix}-no`} name="q" />
+    <label htmlFor={`${prefix}-kind`}>Emlak Türü:</label><select id={`${prefix}-kind`} name="type" defaultValue=""><option value="">Seçiniz</option>{kinds.map((kind) => <option key={kind}>{kind}</option>)}</select>
+    <label htmlFor={`${prefix}-town`}>İlçe Seçin:</label><select id={`${prefix}-town`} name="district" defaultValue=""><option value="">Seçiniz</option>{districts.map((district) => <option key={district}>{district}</option>)}</select>
+    <div className="v10x-pair"><span><label htmlFor={`${prefix}-min`}>En Düşük Fiyat:</label><input id={`${prefix}-min`} name="min" inputMode="numeric" /></span><span><label htmlFor={`${prefix}-max`}>En Yüksek Fiyat:</label><input id={`${prefix}-max`} name="max" inputMode="numeric" /></span></div>
+    <div className="v10x-pair"><span><label htmlFor={`${prefix}-m2min`}>Metrekare Aralığı:</label><input id={`${prefix}-m2min`} name="m2min" inputMode="numeric" placeholder="En az" /></span><span><label htmlFor={`${prefix}-m2max`} className="v10x-ghost-label">Metrekare üst sınırı</label><input id={`${prefix}-m2max`} name="m2max" inputMode="numeric" placeholder="En çok" /></span></div>
+    <label htmlFor={`${prefix}-room`}>Oda Sayısı:</label><select id={`${prefix}-room`} name="room" defaultValue=""><option value="">Seçiniz</option>{rooms.map((room) => <option key={room}>{room}</option>)}</select>
+  </>;
+}
+
+function EstateRow({ title, accent, items }: { title: string; accent: string; items: Listing[] }) {
+  return <>
+    <h2 className="v10x-latest-title"><Play aria-hidden="true" /> <strong>{accent}</strong> {title}</h2>
+    <div className="v10x-estates">
+      {items.map((item) => <Link href={href(item)} className="v10x-estate" key={item.id}>
+        <span className="v10x-estate-img"><span style={{ backgroundImage: `url(${item.image})` }} /></span>
+        <span className="v10x-estate-detail"><span className="v10x-estate-price">{item.price}</span><strong>{item.title}</strong></span>
+      </Link>)}
+    </div>
+  </>;
+}
 
 export default async function Home() {
-  const [listings, cars, searchItems, content] = await Promise.all([
-    getFirebaseListings().then((items) => items.slice(0, 3)),
-    getFirebaseRentalCars().then((items) => items.slice(0, 3)),
-    getFirebaseSearchItems(),
-    getSiteContent(),
-  ]);
-  return <div className="home-page"><Header content={content} /><main>
-    <section className="hero" style={{ backgroundImage: `url(${content.homeHeroImageUrl})` }}>
-      <div className="hero-overlay" />
-      <div className="hero-content shell">
-        <p className="eyebrow fade-in-up">{content.homeHeroEyebrow}</p>
-        <h1 className="fade-in-up editable-lines">{content.homeHeroTitle}</h1>
-        <p className="hero-copy fade-in-up delay-2">{content.homeHeroText}</p>
-        <div className="hero-actions fade-in-up delay-3">
-          <Link className="button gold fade-in-up" href="/ilanlar">{content.homeListingsButton} <ArrowRight size={18}/></Link>
-          <a className="button ghost fade-in-up" href="tel:+905354266235"><Phone size={18}/> {content.homeCallButton}</a>
-        </div>
-        <div className="hero-stats"><span>{listings.length}+ SEÇKİN İLAN</span><span>3 GÜÇLÜ HİZMET</span><span>KARAMAN&apos;DA YEREL DENEYİM</span></div>
-      </div>
-      <HomeSearch items={searchItems} />
+  const [liveListings, content] = await Promise.all([getFirebaseListings(), getSiteContent()]);
+  const homepageSlides = slides.map((slide, index) => ({ ...slide, image: [content.homeHeroImageUrl, content.homeHeroImageUrl2, content.homeHeroImageUrl3, content.homeHeroImageUrl4, content.homeHeroImageUrl5][index] }));
+  const all = [...liveListings, ...fallback];
+  const has = (item: Listing, word: string) => item.badge.toLocaleLowerCase("tr-TR").includes(word);
+  const rentals = all.filter((item) => has(item, "kiralık")).slice(0, 4);
+  const sales = all.filter((item) => has(item, "satılık")).slice(0, 4);
+  const showcase = all.filter((item) => item.image).map((item) => ({ id: item.id, href: href(item), image: item.image, price: item.price, district: item.location.split(/[,-]/)[0].trim(), type: item.type }));
+
+  return <div className={`v10-home v10x ${openSans.variable} ${condensed.variable}`}><Header content={content} /><main>
+    <HomeBanner slides={homepageSlides}>
+      <form className="v10x-search-box" action="/ilanlar">
+        <SearchFields prefix="banner" />
+        <div className="v10x-search-button"><button type="submit">ARAMA</button></div>
+      </form>
+    </HomeBanner>
+
+    <section className="v10x-latest shell">
+      <EstateRow accent="KİRALIK" title="İLANLAR" items={rentals} />
+      <EstateRow accent="SATILIK" title="İLANLAR" items={sales} />
     </section>
 
-    <section className="intro-strip"><div className="shell"><p>Aradığınız hizmete hızlıca ulaşın</p><nav aria-label="Hizmet bağlantıları"><Link href="/ilanlar"><Building2/> Emlak ilanları <ArrowRight/></Link><Link href="#projeler"><HardHat/> İnşaat projeleri <ArrowRight/></Link><Link href="/arac-kiralama"><CarFront/> Kiralık araçlar <ArrowRight/></Link></nav></div></section>
+    <section className="v10x-main shell">
+      <aside className="v10x-side">
+        <div className="v10x-box">
+          <div className="v10x-box-header">Arama Kriterleri</div>
+          <form className="v10x-box-body v10x-filter" action="/ilanlar">
+            <SearchFields prefix="side" />
+            <div className="v10x-mascot"><span aria-hidden="true"><HomeIcon /></span><button type="submit">ARAMA</button></div>
+            <p>Tüm arama kriterlerinizi belirleyerek en hızlı şekilde hayalinizdeki konuta ulaşabilirsiniz.</p>
+          </form>
+        </div>
+        <a className="v10x-estate-add" href="tel:+905354266235"><HomeIcon /><span><strong>Emlakınızı Bize Verin</strong><small>Satılık ya da kiralık, hızlıca yayına alalım</small></span></a>
+        <CallMe />
+      </aside>
 
-    <section className="services-wrap"><div className="services shell">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow dark">SERVET RENT A CAR</p>
-          <h2>Kiralık araçlarımız</h2>
+      <div className="v10x-content">
+        <ShowcaseMosaic items={showcase} />
+        <div className="v10x-box v10x-posts" id="blog">
+          <div className="v10x-box-header">Blog</div>
+          <div className="v10x-box-body"><div className="v10x-post-grid">
+            {posts.map((post) => <article className="v10x-post" key={post.title}>
+              <span className="v10x-post-img"><span style={{ backgroundImage: `url(${post.image})` }} /></span>
+              <h3>{post.title}</h3><p>{post.text}</p><small>{post.category}</small>
+            </article>)}
+          </div></div>
         </div>
-        <p>Bakımlı, konforlu ve ihtiyacınıza uygun araçlarımızı inceleyin.</p>
-      </div>
-      <div className="home-car-grid">
-        {cars.map((car, index) => <Link href={`/arac-kiralama/${car.id}`} className="home-car-card fade-in-up" style={{ animationDelay: `${(index + 1) * .1}s` }} key={car.id}>
-          <div className="home-car-image" style={{ backgroundImage: `url(${car.image})` }}><span className={car.status === "available" ? "available" : "rented"}>{car.status === "available" ? "MÜSAİT" : "KİRADA"}</span></div>
-          <div className="home-car-body"><small>Servet Rent A Car</small><h3>{car.name}</h3><div><span><CalendarCheck2 />{car.year}</span><span><UsersRound />{car.seats}</span></div><strong>{car.model}<ArrowRight /></strong></div>
-        </Link>)}
-        {cars.length === 0 && <div className="home-car-empty"><CarFront/><p>Yeni araçlarımız çok yakında burada.</p></div>}
-      </div>
-      <div className="home-car-all"><Link href="/arac-kiralama">Tüm araçları incele <ArrowRight /></Link></div>
-    </div></section>
-
-    <section className="listings-section">
-      <div className="shell">
-        <div className="section-title-row featured-title">
-          <div>
-            <h2>Öne çıkan ilanlar</h2>
-            <p>Karaman merkez ve ilçelerinde yatırımınıza değer katacak seçkin gayrimenkulleri keşfedin.</p>
-          </div>
-          <Link href="/ilanlar">Tüm ilanlar <ArrowRight size={18}/></Link>
+        <div className="v10x-partners" id="hakkimizda">
+          <div><HomeIcon /><strong>GENİŞ PORTFÖY</strong><span>Her bütçeye uygun seçenekler</span></div>
+          <div><MapPin /><strong>YEREL UZMANLIK</strong><span>Karaman&apos;ı yakından tanıyoruz</span></div>
+          <div><Phone /><strong>HIZLI İLETİŞİM</strong><span>Her zaman yanınızdayız</span></div>
+          <div><Mail /><strong>GÜVENİLİR HİZMET</strong><span>Şeffaf ve çözüm odaklı</span></div>
         </div>
-        <nav className="listing-categories" aria-label="İlan kategorileri">
-          <Link href="/ilanlar"><Building2/><span>Tümü</span></Link>
-          <Link href="/ilanlar"><House/><span>Satılık Konut</span></Link>
-          <Link href="/ilanlar"><LandPlot/><span>Satılık Arsa</span></Link>
-          <Link href="/ilanlar"><Store/><span>Satılık İşyeri</span></Link>
-        </nav>
-        <div className="listing-grid">
-          {listings.map((item) => <Link href={`/ilanlar/${item.id}`} className="listing-card fade-in" style={{ animationDelay: `${item.id.length * 0.1}s` }} key={item.id}>
-            <div className="listing-image" role="img" aria-label={`${item.title} ilan fotoğrafı`} style={{ backgroundImage: `url(${item.image})` }}>
-              <span>{item.badge}</span>
-              <b>{item.price}</b>
-            </div>
-            <div className="listing-body">
-              <p className="listing-type">{item.type}</p>
-              <h3>{item.title}</h3>
-              <p className="location"><MapPin size={15}/>{item.location}</p>
-              <div className="meta">{item.meta.map(x => <span key={x}>{x}</span>)}</div>
-              <div className="price">İlanı incele<ArrowRight size={20}/></div>
-            </div>
-          </Link>)}
-        </div>
-      </div>
-    </section>
-
-    <section id="projeler" className="projects shell">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow dark">SERVET İNŞAAT</p>
-          <h2 className="editable-lines">{content.projectsTitle}</h2>
-        </div>
-        <p>{content.projectsText}</p>
-      </div>
-      <div className="project-grid">
-        {projects.map((p, i) => <article key={p.title} className="project-item fade-in-up" role="img" aria-label={`${p.title} proje görseli`} style={{ animationDelay: `${i * 0.2}s`, backgroundImage: `url(${p.image})` }}>
-          <div>
-            <span>{i + 1}</span>
-            <h3>{p.title}</h3>
-            <p>{p.text}</p>
-          </div>
-        </article>)}
-      </div>
-    </section>
-
-    <section id="hakkimizda" className="about">
-      <div className="shell about-grid">
-        <div className="about-image fade-in-up">
-          <div className="experience">
-            <strong>3</strong>
-            <span>Hizmet<br/>Tek Adres</span>
-          </div>
-        </div>
-        <div>
-          <p className="eyebrow">BİZİ TANIYIN</p>
-          <h2>{content.aboutTitle}</h2>
-          <p>{content.aboutText}</p>
-          <ul>
-            <li><CheckCircle2/>Yerel pazar deneyimi</li>
-            <li><CheckCircle2/>Şeffaf ve güvenilir hizmet</li>
-            <li><CheckCircle2/>Satış sonrası destek</li></ul>
-          <a className="button gold" href="tel:+905354266235">Servet Saltan ile görüşün</a>
-        </div>
-      </div>
-    </section>
-
-    <section className="faq-section shell" id="sss">
-      <div className="section-heading"><div><p className="eyebrow dark">SIK SORULAN SORULAR</p><h2>Merak ettikleriniz</h2></div><p>İlanlar, kiralama ve hizmet süreci hakkında kısa yanıtlar.</p></div>
-      <div className="faq-list">
-        <details><summary>Araçların müsaitlik bilgisi güncel mi?</summary><p>Panelde gösterilen durum güncel filoyu yansıtır. Kesin rezervasyon için bizi aramanızı öneririz.</p></details>
-        <details><summary>Emlak ilanları hakkında nasıl bilgi alabilirim?</summary><p>İlan detayındaki telefon veya WhatsApp butonunu kullanarak ilan koduyla doğrudan bilgi alabilirsiniz.</p></details>
-        <details><summary>Araç kiralamak için hangi bilgiler gerekiyor?</summary><p>Ehliyet, kimlik ve kiralama koşullarına uygunluk gerekir. Güncel şartlar için bizimle iletişime geçebilirsiniz.</p></details>
-        <details><summary>İnşaat projeleri için keşif yapıyor musunuz?</summary><p>Evet. İhtiyacı değerlendirmek ve görüşme planlamak için telefonla bize ulaşabilirsiniz.</p></details>
-      </div>
-    </section>
-
-    <section className="contact-band">
-      <div className="shell">
-        <div>
-          <p>Size uygun çözümü birlikte bulalım</p>
-          <h2>{content.contactTitle}</h2>
-        </div>
-        <a className="button light" href="https://wa.me/905354266235">WhatsApp&apos;tan Yazın <ArrowRight size={18}/></a>
       </div>
     </section>
   </main><Footer content={content} /><WhatsApp /></div>;

@@ -6,8 +6,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://servetrentcar.verce
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: "Servet İnşaat Emlak Rent A Car | Karaman", template: "%s | Servet" },
-  description: "Karaman emlak, inşaat ve araç kiralama hizmetleri. Servet Saltan: 0535 426 62 35",
+  title: { default: "Servet Emlak | Karaman Satılık ve Kiralık İlanlar", template: "%s | Servet Emlak" },
+  description: "Karaman satılık ve kiralık emlak ilanları. Servet Emlak: 0535 426 62 35",
   alternates: { canonical: "/" },
   openGraph: { type: "website", locale: "tr_TR", siteName: "Servet İnşaat Emlak Rent A Car", title: "Servet İnşaat Emlak Rent A Car | Karaman", description: "Karaman'da emlak, inşaat ve araç kiralama hizmetleri.", url: siteUrl },
   twitter: { card: "summary_large_image", title: "Servet İnşaat Emlak Rent A Car", description: "Karaman'da emlak, inşaat ve araç kiralama hizmetleri." },

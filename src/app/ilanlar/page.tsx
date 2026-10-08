@@ -9,5 +9,5 @@ export const metadata: Metadata = { title: "Güncel Emlak İlanları", descripti
 
 export default async function ListingsPage() {
   const [listings, content] = await Promise.all([getFirebaseListings(), getSiteContent()]);
-  return <div className="listings-page"><Header content={content}/><main><section className="page-hero"><div className="shell"><p className="eyebrow">{content.listingHeroEyebrow}</p><h1>{content.listingHeroTitle}</h1><p>{content.listingHeroText}</p></div></section><ListingCatalog items={listings}/></main><Footer content={content}/><WhatsApp/></div>;
+  return <div className="listings-page v10-listings-page"><Header content={content}/><main><ListingCatalog items={listings}/></main><Footer content={content}/><WhatsApp/></div>;
 }

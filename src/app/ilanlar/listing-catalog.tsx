@@ -1,28 +1,73 @@
 "use client";
 
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { ArrowRight, Building2, House, LandPlot, MapPin, Store } from "lucide-react";
-import { turkeyCities } from "../data";
 
 type Listing = { id: string; type: string; propertyType: string; badge: string; title: string; location: string; price: string; meta: string[]; image: string };
 
+function amount(value: string) {
+  return Number(value.replace(/[^0-9]/g, "")) || 0;
+}
+
 export function ListingCatalog({ items }: { items: Listing[] }) {
-  const [propertyType, setPropertyType] = useState(""); const [status, setStatus] = useState(""); const [city, setCity] = useState(""); const [sort, setSort] = useState("new");
-  const visible = useMemo(() => {
-    const filtered = items.filter((item) => (!propertyType || item.propertyType === propertyType) && (!status || item.badge === status) && (!city || item.location.includes(city)));
-    if (sort === "asc" || sort === "desc") filtered.sort((a,b) => (Number(a.price.replace(/\D/g,"")) - Number(b.price.replace(/\D/g,""))) * (sort === "asc" ? 1 : -1));
-    return filtered;
-  }, [items, propertyType, status, city, sort]);
-  const chooseType = (value: string) => setPropertyType(value);
-  return <section className="catalog shell">
-    <nav className="catalog-categories" aria-label="Emlak türleri">
-      <button className={!propertyType ? "active" : ""} type="button" onClick={()=>chooseType("")}><Building2/><span>Tümü</span></button>
-      <button className={propertyType === "Konut" ? "active" : ""} type="button" onClick={()=>chooseType("Konut")}><House/><span>Konut</span></button>
-      <button className={propertyType === "Arsa" ? "active" : ""} type="button" onClick={()=>chooseType("Arsa")}><LandPlot/><span>Arsa</span></button>
-      <button className={propertyType === "İş Yeri" ? "active" : ""} type="button" onClick={()=>chooseType("İş Yeri")}><Store/><span>İşyeri</span></button>
-    </nav>
-    <div className="catalog-toolbar"><strong>{visible.length} ilan bulundu</strong><div><label>İşlem<select value={status} onChange={(e)=>setStatus(e.target.value)}><option value="">Tümü</option><option>Satılık</option><option>Kiralık</option></select></label><label>Konum<select value={city} onChange={(e)=>setCity(e.target.value)}><option value="">Tüm Türkiye</option>{turkeyCities.map((value)=><option key={value}>{value}</option>)}</select></label><label>Sıralama<select value={sort} onChange={(e)=>setSort(e.target.value)}><option value="new">En yeni</option><option value="asc">Fiyat: Artan</option><option value="desc">Fiyat: Azalan</option></select></label></div></div>
-    <div className="listing-grid catalog-grid">{visible.map((item)=><Link className="listing-card" href={`/ilanlar/${item.id}`} key={item.id}><div className="listing-image" role="img" aria-label={`${item.title} ilan fotoğrafı`} style={{backgroundImage:`url(${item.image})`}}><span>{item.badge}</span><b>{item.price}</b></div><div className="listing-body"><p className="listing-type">{item.type}</p><h3>{item.title}</h3><p className="location"><MapPin size={15}/>{item.location}</p><div className="meta">{item.meta.map(x=><span key={x}>{x}</span>)}</div><div className="price">İlanı incele<ArrowRight size={20}/></div></div></Link>)}{visible.length===0&&<p className="catalog-empty">Bu filtrelere uygun ilan bulunamadı.</p>}</div>
+  const [code, setCode] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [status, setStatus] = useState("");
+  const [district, setDistrict] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [minArea, setMinArea] = useState("");
+  const [maxArea, setMaxArea] = useState("");
+  const [rooms, setRooms] = useState("");
+
+  const propertyTypes = [...new Set(items.map((item) => item.propertyType).filter(Boolean))];
+  const statuses = [...new Set(items.map((item) => item.badge).filter(Boolean))];
+  const districts = [...new Set(items.map((item) => item.location).filter(Boolean))];
+
+  const visible = useMemo(() => items.filter((item) => {
+    const haystack = `${item.id} ${item.title}`.toLocaleLowerCase("tr-TR");
+    const price = amount(item.price);
+    const areaText = item.meta.find((entry) => entry.includes("m²")) ?? "";
+    const area = amount(areaText);
+    return (!code || haystack.includes(code.toLocaleLowerCase("tr-TR")))
+      && (!propertyType || item.propertyType === propertyType)
+      && (!status || item.badge === status)
+      && (!district || item.location === district)
+      && (!minPrice || price >= Number(minPrice))
+      && (!maxPrice || price <= Number(maxPrice))
+      && (!minArea || area >= Number(minArea))
+      && (!maxArea || area <= Number(maxArea))
+      && (!rooms || item.meta.some((entry) => entry === rooms));
+  }), [items, code, propertyType, status, district, minPrice, maxPrice, minArea, maxArea, rooms]);
+
+  const rentalOnly = status.toLocaleLowerCase("tr-TR").includes("kiralık");
+
+  return <section className="v10-catalog-shell shell">
+    <aside className="v10-filter">
+      <h2>Arama Kriterleri</h2>
+      <div className="v10-filter-body">
+        <label>İlan Kodu<input value={code} onChange={(e) => setCode(e.target.value)} /></label>
+        <label>Emlak Türü<select value={propertyType} onChange={(e) => setPropertyType(e.target.value)}><option value="">Seçiniz</option>{propertyTypes.map((value) => <option key={value}>{value}</option>)}</select></label>
+        <label>İlan Durumu<select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Seçiniz</option>{statuses.map((value) => <option key={value}>{value}</option>)}</select></label>
+        <label>Semt Seçin<select value={district} onChange={(e) => setDistrict(e.target.value)}><option value="">İlçe Seçiniz</option>{districts.map((value) => <option key={value}>{value}</option>)}</select></label>
+        <div className="v10-filter-pair"><label>Düşük Fiyat<input inputMode="numeric" value={minPrice} onChange={(e) => setMinPrice(e.target.value.replace(/\D/g, ""))}/></label><label>Yüksek Fiyat<input inputMode="numeric" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value.replace(/\D/g, ""))}/></label></div>
+        <div className="v10-filter-pair"><label>Metrekare Aralığı<input inputMode="numeric" value={minArea} onChange={(e) => setMinArea(e.target.value.replace(/\D/g, ""))}/></label><label><span aria-hidden="true">&nbsp;</span><input inputMode="numeric" value={maxArea} onChange={(e) => setMaxArea(e.target.value.replace(/\D/g, ""))}/></label></div>
+        <label>Oda Sayısı<select value={rooms} onChange={(e) => setRooms(e.target.value)}><option value="">Seçiniz</option><option>1+1</option><option>2+1</option><option>3+1</option><option>4+1</option></select></label>
+        <div className="v10-filter-action"><Search/><button type="button">ARAMA</button></div>
+        <p>Tüm arama kriterlerinizi belirleyebilir, en hızlı şekilde hayalinizdeki konuta ulaşabilirsiniz.</p>
+      </div>
+    </aside>
+
+    <div className="v10-results">
+      <h1>{rentalOnly ? "Tüm Kiralık İlanlar" : status ? `Tüm ${status} İlanlar` : "Tüm Emlak İlanları"}</h1>
+      <div className="v10-results-grid">
+        {visible.map((item) => <Link href={`/ilanlar/${item.id}`} className="v10-result-card" key={item.id}>
+          <div className="v10-result-image" style={{backgroundImage:`url(${item.image})`}}><b>{item.price}</b></div>
+          <div className="v10-result-caption"><strong>{item.location}</strong><span>{item.badge} {item.propertyType}</span></div>
+        </Link>)}
+        {!visible.length && <div className="v10-no-results"><Search/><strong>İlan bulunamadı</strong><span>Arama kriterlerinizi değiştirip tekrar deneyin.</span></div>}
+      </div>
+    </div>
   </section>;
 }

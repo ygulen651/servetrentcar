@@ -39,7 +39,7 @@ export function SiteContentEditor({ user }: { user: User }) {
     finally { setBusy(false); }
   }
 
-  async function uploadHero(event: ChangeEvent<HTMLInputElement>, key: "homeHeroImageUrl" | "rentalHeroImageUrl") {
+  async function uploadHero(event: ChangeEvent<HTMLInputElement>, key: "homeHeroImageUrl" | "homeHeroImageUrl2" | "homeHeroImageUrl3" | "homeHeroImageUrl4" | "homeHeroImageUrl5" | "rentalHeroImageUrl") {
     const image = event.target.files?.[0];
     event.target.value = "";
     if (!image) return;
@@ -61,12 +61,14 @@ export function SiteContentEditor({ user }: { user: User }) {
   return <form className="site-content-editor" onSubmit={save}>
     <div className="content-editor-head"><div><h2>Site Yazıları</h2><p>Sitede görünen başlık ve açıklamaları bölüm bölüm düzenleyin.</p></div><button type="submit" disabled={busy}><Save />{busy ? "Kaydediliyor..." : "Tümünü Kaydet"}</button></div>
     {message && <p className="admin-message" role="status"><Check />{message}</p>}
-    <section className="content-editor-group"><h3>Hero Görselleri</h3><div className="hero-image-editor">
-      {([ ["homeHeroImageUrl", "Ana sayfa hero görseli"], ["rentalHeroImageUrl", "Araç kiralama hero görseli"] ] as const).map(([key, label]) => <article key={key}>
+    <section className="content-editor-group"><h3>Ana Sayfa Slider Görselleri</h3><p className="image-slot-help">Ana sayfadaki büyük görseller aşağıdaki sırayla gösterilir. Her alanın numarası, görselin slider içindeki yerini belirtir.</p><div className="hero-image-editor slider-image-editor">
+      {([ ["homeHeroImageUrl", "1. Slider Görseli"], ["homeHeroImageUrl2", "2. Slider Görseli"], ["homeHeroImageUrl3", "3. Slider Görseli"], ["homeHeroImageUrl4", "4. Slider Görseli"], ["homeHeroImageUrl5", "5. Slider Görseli"] ] as const).map(([key, label], index) => <article key={key}>
         <div className="hero-image-preview" role="img" aria-label={`${label} önizlemesi`} style={{ backgroundImage: `url(${content[key] ?? ""})` }} />
-        <div><strong>{label}</strong><small>Yatay, yüksek çözünürlüklü JPG, PNG veya WEBP kullanın. En fazla 10 MB.</small><label className="hero-upload-button"><ImagePlus />Görseli Değiştir<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={(event) => uploadHero(event, key)} /></label></div>
+        <span className="slider-slot-number">{index + 1}</span><div><strong>{label}</strong><small>Bu fotoğraf ana sayfada {index + 1}. sırada görünür. Yatay JPG, PNG veya WEBP kullanın.</small><label className="hero-upload-button"><ImagePlus />Görseli Değiştir<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={(event) => uploadHero(event, key)} /></label></div>
       </article>)}
     </div></section>
+    <section className="content-editor-group"><h3>Ana Sayfa İlan Görsel Yerleri</h3><div className="homepage-placement-guide"><div><strong>4 Kiralık İlan</strong><span>En yeni dört kiralık ilanın kapak fotoğrafı kullanılır.</span></div><div><strong>4 Satılık İlan</strong><span>En yeni dört satılık ilanın kapak fotoğrafı kullanılır.</span></div><div><strong>5 Vitrin Görseli</strong><span>İlanlardaki ilk kapak fotoğrafları mozaik vitrinde gösterilir.</span></div></div><p className="image-slot-help">Bu alanlardaki fotoğrafları değiştirmek için “Emlak İlanları” bölümünden ilgili ilanı düzenleyin. İlanın 1. fotoğrafı kapak ve ana sayfa görselidir.</p></section>
+    <section className="content-editor-group"><h3>Diğer Sayfa Görselleri</h3><div className="hero-image-editor"><article><div className="hero-image-preview" role="img" aria-label="Araç kiralama kapak görseli" style={{backgroundImage:`url(${content.rentalHeroImageUrl ?? ""})`}}/><div><strong>Araç kiralama kapak görseli</strong><small>Rent A Car sayfasının kapak alanında kullanılır.</small><label className="hero-upload-button"><ImagePlus/>Görseli Değiştir<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={(event) => uploadHero(event, "rentalHeroImageUrl")}/></label></div></article></div></section>
     {groups.map((group) => <section className="content-editor-group" key={group}><h3>{group}</h3><div className="content-editor-grid">
       {fields.filter(([fieldGroup]) => fieldGroup === group).map(([, key, label, kind]) => <label className={kind === "long" ? "wide" : ""} key={key}>{label}{kind === "long" ? <textarea rows={3} value={content[key] ?? ""} onChange={(event) => setContent((current) => ({ ...current, [key]: event.target.value }))} required /> : <input value={content[key] ?? ""} onChange={(event) => setContent((current) => ({ ...current, [key]: event.target.value }))} required />}</label>)}
     </div></section>)}
