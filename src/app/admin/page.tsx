@@ -2,16 +2,17 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
-import { Building2, Camera, CarFront, Check, ChevronDown, Eye, FileText, ImagePlus, LayoutDashboard, LogOut, Menu, Pencil, Plus, Search, Settings, Star, Trash2, X } from "lucide-react";
+import { Building2, Camera, CarFront, Check, ChevronDown, Eye, FileText, ImagePlus, KeyRound, LayoutDashboard, LogOut, Menu, Pencil, PhoneCall, Plus, Search, Settings, Star, Trash2, X } from "lucide-react";
 import { turkeyCities } from "../data";
 import { auth } from "@/lib/firebase";
 import { SiteContentEditor } from "./site-content-editor";
 
 type ListingCategory = "Emlak" | "Araç";
-type View = "overview" | "content" | ListingCategory;
+type View = "overview" | "content" | "Kiralık" | "callbacks" | ListingCategory;
 type SelectedPhoto = { file: File; source: File; name: string; url: string };
 type ExistingPhoto = { path: string; url: string };
 type FirebaseItem = { id: string; category: ListingCategory; propertyType?: string; title: string; price: number; status: string; locationOrYear: string; description?: string; imagePaths?: string[]; imageUrls?: string[] };
+type CallbackRequest = { id: string; name: string; phone: string; status: string; createdAt: string | null };
 
 const MAX_SOURCE_PHOTO_SIZE = 600_000_000;
 const MAX_OPTIMIZED_PHOTO_SIZE = 350_000;
@@ -21,14 +22,17 @@ export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [items, setItems] = useState<FirebaseItem[]>([]);
+  const [callbackRequests, setCallbackRequests] = useState<CallbackRequest[]>([]);
   const [view, setView] = useState<View>("overview");
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState<FirebaseItem | null>(null);
   const [category, setCategory] = useState<ListingCategory>("Emlak");
+  const [editingStatus, setEditingStatus] = useState<"Satılık" | "Kiralık" | undefined>();
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
   const [newPhotoIsCover, setNewPhotoIsCover] = useState(false);
+  const [draggingPhoto, setDraggingPhoto] = useState<{ group: "existing" | "new"; index: number } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -36,7 +40,7 @@ export default function AdminPage() {
 
   useEffect(() => onAuthStateChanged(auth, (nextUser) => {
     setUser(nextUser); setAuthReady(true);
-    if (nextUser) void loadItems(nextUser); else setItems([]);
+    if (nextUser) { void loadItems(nextUser); void loadCallbackRequests(nextUser); } else { setItems([]); setCallbackRequests([]); }
   }), []);
 
   async function authorizedFetch(url: string, options: RequestInit = {}, activeUser = user) {
@@ -52,6 +56,24 @@ export default function AdminPage() {
     setItems(await response.json());
   }
 
+  async function loadCallbackRequests(activeUser = user) {
+    if (!activeUser) return;
+    const response = await authorizedFetch("/api/admin/callback-requests", {}, activeUser);
+    if (!response.ok) throw new Error("Arama talepleri yüklenemedi.");
+    setCallbackRequests(await response.json());
+  }
+
+  async function deleteCallbackRequest(request: CallbackRequest) {
+    if (!window.confirm(`${request.name} adlı kişinin arama talebi silinsin mi?`)) return;
+    setBusy(true);
+    try {
+      const response = await authorizedFetch(`/api/admin/callback-requests/${request.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Talep silinemedi.");
+      await loadCallbackRequests(); setMessage("Arama talebi silindi.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Talep silinemedi."); }
+    finally { setBusy(false); }
+  }
+
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setMessage("");
     const form = new FormData(event.currentTarget);
@@ -60,13 +82,13 @@ export default function AdminPage() {
     finally { setBusy(false); }
   }
 
-  function openCreate(nextCategory: ListingCategory = "Emlak") { setEditing(null); setCategory(nextCategory); setPhotos([]); setExistingPhotos([]); setNewPhotoIsCover(false); setModal(true); setMessage(""); }
+  function openCreate(nextCategory: ListingCategory = "Emlak", defaultStatus?: "Satılık" | "Kiralık") { setEditing(null); setCategory(nextCategory); setPhotos([]); setExistingPhotos([]); setNewPhotoIsCover(false); setEditingStatus(defaultStatus); setModal(true); setMessage(""); }
   function openEdit(item: FirebaseItem) {
-    setEditing(item); setCategory(item.category); setPhotos([]);
+    setEditing(item); setCategory(item.category); setEditingStatus(undefined); setPhotos([]);
     setExistingPhotos((item.imageUrls ?? []).map((url, index) => ({ url, path: item.imagePaths?.[index] ?? "" })));
     setNewPhotoIsCover(false); setModal(true); setMessage("");
   }
-  function closeModal() { photos.forEach((photo) => URL.revokeObjectURL(photo.url)); setPhotos([]); setExistingPhotos([]); setNewPhotoIsCover(false); setModal(false); setEditing(null); }
+  function closeModal() { photos.forEach((photo) => URL.revokeObjectURL(photo.url)); setPhotos([]); setExistingPhotos([]); setNewPhotoIsCover(false); setEditingStatus(undefined); setModal(false); setEditing(null); }
   function selectView(nextView: View) { setView(nextView); setMobileMenuOpen(false); }
 
   async function saveItem(event: FormEvent<HTMLFormElement>) {
@@ -151,16 +173,25 @@ export default function AdminPage() {
     setPhotos((current) => { const next = [...current]; const [cover] = next.splice(index, 1); return [cover, ...next]; });
     setNewPhotoIsCover(true);
   }
+  function dropPhoto(group: "existing" | "new", targetIndex: number) {
+    if (!draggingPhoto || draggingPhoto.group !== group || draggingPhoto.index === targetIndex) { setDraggingPhoto(null); return; }
+    const reorder = <T,>(current: T[]) => { const next = [...current]; const [moved] = next.splice(draggingPhoto.index, 1); next.splice(targetIndex, 0, moved); return next; };
+    if (group === "existing") setExistingPhotos(reorder);
+    else setPhotos(reorder);
+    setDraggingPhoto(null);
+  }
 
   const filteredItems = useMemo(() => items.filter((item) => {
     const needle = search.trim().toLocaleLowerCase("tr-TR");
-    return (view === "overview" || item.category === view) && (!needle || `${item.title} ${item.propertyType ?? ""} ${item.locationOrYear} ${item.id}`.toLocaleLowerCase("tr-TR").includes(needle));
+    const matchesView = view === "overview" || item.category === view || (view === "Kiralık" && item.category === "Emlak" && item.status.toLocaleLowerCase("tr-TR").includes("kiralık"));
+    return matchesView && (!needle || `${item.title} ${item.propertyType ?? ""} ${item.locationOrYear} ${item.id}`.toLocaleLowerCase("tr-TR").includes(needle));
   }), [items, search, view]);
   const emlakCount = items.filter((item) => item.category === "Emlak").length;
+  const rentalCount = items.filter((item) => item.category === "Emlak" && item.status.toLocaleLowerCase("tr-TR").includes("kiralık")).length;
   const carCount = items.filter((item) => item.category === "Araç").length;
   const availableCarCount = items.filter((item) => item.category === "Araç" && item.status !== "rented").length;
   const recentItems = items.slice(0, 4);
-  const title = view === "overview" ? "Genel Bakış" : view === "content" ? "Site Yazıları" : view === "Emlak" ? "Emlak İlanları" : "Araç Filosu";
+  const title = view === "overview" ? "Genel Bakış" : view === "content" ? "Site Yazıları" : view === "callbacks" ? "Arama Talepleri" : view === "Kiralık" ? "Kiralık İlanlar" : view === "Emlak" ? "Emlak İlanları" : "Araç Filosu";
 
   if (!authReady) return <main className="admin-login"><p>Yönetim paneli yükleniyor...</p></main>;
   if (!user) return <main className="admin-login"><form onSubmit={login}>
@@ -176,6 +207,8 @@ export default function AdminPage() {
       <nav aria-label="Yönetim menüsü">
         <button className={view === "overview" ? "active" : ""} onClick={() => selectView("overview")}><LayoutDashboard />Genel Bakış</button>
         <button className={view === "Emlak" ? "active" : ""} onClick={() => selectView("Emlak")}><Building2 />Emlak İlanları <b>{emlakCount}</b></button>
+        <button className={view === "Kiralık" ? "active" : ""} onClick={() => selectView("Kiralık")}><KeyRound />Kiralık İlanlar <b>{rentalCount}</b></button>
+        <button className={view === "callbacks" ? "active" : ""} onClick={() => selectView("callbacks")}><PhoneCall />Arama Talepleri <b>{callbackRequests.length}</b></button>
         <button className={view === "Araç" ? "active" : ""} onClick={() => selectView("Araç")}><CarFront />Araç Filosu <b>{carCount}</b></button>
         <button className={view === "content" ? "active" : ""} onClick={() => selectView("content")}><FileText />Site Yazıları</button>
         <a href="/" target="_blank"><Eye />Siteyi Görüntüle</a><a href="mailto:info@servetinsaat.com"><Settings />Destek</a>
@@ -184,7 +217,13 @@ export default function AdminPage() {
     <main className="admin-main"><header><button className="admin-menu" aria-label="Menüyü aç" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}><Menu /></button><div className="admin-header-spacer" /><a className="admin-site-link" href="/" target="_blank"><Eye /> Siteyi Gör</a><button className="admin-settings" type="button" title="Ayarlar" onClick={() => selectView("content")}><Settings /></button><button className="admin-user" title={user.email ?? "Yönetici"}><span>{(user.email?.slice(0, 1) ?? "S").toUpperCase()}</span><strong>Oturum</strong><ChevronDown /></button></header>
       <section className="admin-content">
         <div className="admin-page-heading"><div><span>YÖNETİM PANELİ</span><h1>{title}</h1></div><small>{view === "overview" ? "Genel Bakış" : title}</small></div>
-        {view === "content" ? <SiteContentEditor user={user} /> : view === "overview" ? <>
+        {view === "content" ? <SiteContentEditor user={user} /> : view === "callbacks" ? <>
+          {message && <p className="admin-message" role="status">{message}</p>}
+          <div className="admin-table callback-table"><div className="table-scroll"><table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Gönderim Tarihi</th><th>İşlem</th></tr></thead><tbody>
+            {callbackRequests.map((request) => <tr key={request.id}><td><strong>{request.name}</strong></td><td><a className="callback-phone" href={`tel:${request.phone}`}><PhoneCall/>{request.phone}</a></td><td>{request.createdAt ? new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(request.createdAt)) : "Yeni"}</td><td><div className="actions"><button type="button" title="Talebi sil" aria-label={`${request.name} arama talebini sil`} disabled={busy} onClick={() => deleteCallbackRequest(request)}><Trash2/></button></div></td></tr>)}
+            {callbackRequests.length === 0 && <tr><td className="empty-state" colSpan={4}>Henüz arama talebi bulunmuyor.</td></tr>}
+          </tbody></table></div></div>
+        </> : view === "overview" ? <>
           <div className="stats dashboard-stats">
             <article className="stat-green"><span><Building2 /></span><div><strong>{emlakCount}</strong><small>Emlak Kaydı</small></div></article>
             <article className="stat-blue"><span><CarFront /></span><div><strong>{carCount}</strong><small>Araç Kaydı</small></div></article>
@@ -203,7 +242,7 @@ export default function AdminPage() {
           </div>
         </> : <>
         <div className="stats"><article><span><Building2 /></span><div><small>Yayındaki emlak ilanı</small><strong>{emlakCount}</strong></div></article><article><span><CarFront /></span><div><small>Filodaki araç</small><strong>{carCount}</strong></div></article><article><span><Check /></span><div><small>Toplam yönetilen içerik</small><strong>{items.length}</strong></div></article></div>
-        <div className="admin-toolbar"><div><h2>{title}</h2><p>İçerikleri arayın, düzenleyin veya yayından kaldırın.</p></div><button onClick={() => openCreate(view === "Araç" ? "Araç" : "Emlak")}><Plus /> Yeni {view === "Araç" ? "Araç" : "İlan"}</button></div>
+        <div className="admin-toolbar"><div><h2>{title}</h2><p>İçerikleri arayın, düzenleyin veya yayından kaldırın.</p></div><button onClick={() => openCreate(view === "Araç" ? "Araç" : "Emlak", view === "Kiralık" ? "Kiralık" : undefined)}><Plus /> Yeni {view === "Araç" ? "Araç" : view === "Kiralık" ? "Kiralık İlan" : "İlan"}</button></div>
         {message && <p className="admin-message" role="status">{message}</p>}
         <div className="admin-table"><div className="table-search"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Başlık, konum veya kod ara..." /></div><div className="table-scroll"><table><thead><tr><th>İçerik</th><th>Tür</th><th>Durum</th><th>Fiyat</th><th>İşlemler</th></tr></thead><tbody>
           {filteredItems.map((item) => <tr key={item.id}><td><div className="table-listing"><div style={{ backgroundImage: `url(${item.imageUrls?.[0] ?? ""})` }}>{!item.imageUrls?.[0] && <Camera />}</div><span><strong>{item.title}</strong><small>{item.locationOrYear} · {item.id}</small></span></div></td><td>{item.category === "Emlak" ? (item.propertyType ?? "Konut") : item.category}</td><td><span className="status">{item.category === "Araç" ? (item.status === "rented" ? "Kirada" : "Boşta") : item.status}</span></td><td><strong>{item.price.toLocaleString("tr-TR")} TL</strong></td><td><div className="actions"><button type="button" title="Düzenle" aria-label={`${item.title} kaydını düzenle`} onClick={() => openEdit(item)}><Pencil /></button><button type="button" title="Sil" aria-label={`${item.title} kaydını sil`} disabled={busy} onClick={() => deleteItem(item)}><Trash2 /></button></div></td></tr>)}
@@ -213,15 +252,15 @@ export default function AdminPage() {
     </main>
     {modal && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && closeModal()}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title"><div className="modal-head"><div><h2 id="item-modal-title">{editing ? "Kaydı Düzenle" : category === "Araç" ? "Yeni Araç Ekle" : "Yeni İlan Ekle"}</h2><p>Burada kaydettiğiniz bilgiler sitede yayınlanır.</p></div><button onClick={closeModal} aria-label="Pencereyi kapat">×</button></div>
       <form key={editing?.id ?? "new"} onSubmit={saveItem}>
-        <label>{category === "Araç" ? "Müsaitlik" : "İşlem türü"}<select name="status" defaultValue={editing?.status ?? (category === "Araç" ? "available" : "Satılık")}>{category === "Araç" ? <><option value="available">Şu an boşta</option><option value="rented">Şu an kirada</option></> : <><option>Satılık</option><option>Kiralık</option></>}</select></label>
+        <label>{category === "Araç" ? "Müsaitlik" : "İşlem türü"}<select name="status" defaultValue={editing?.status ?? (category === "Araç" ? "available" : editingStatus ?? "Satılık")}>{category === "Araç" ? <><option value="available">Şu an boşta</option><option value="rented">Şu an kirada</option></> : <><option>Satılık</option><option>Kiralık</option></>}</select></label>
         {category === "Emlak" && <label>Emlak türü<select name="propertyType" defaultValue={editing?.propertyType ?? "Konut"}><option>Konut</option><option>Arsa</option><option>Tarla</option><option>İş Yeri</option></select></label>}
         <label>{category === "Araç" ? "Araç adı / modeli" : "İlan başlığı"}<input name="title" defaultValue={editing?.title ?? ""} required /></label>
         <div className="form-row"><label>Fiyat (TL)<input name="price" type="number" min="0" defaultValue={editing?.price ?? ""} required /></label><label>{category === "Araç" ? "Model yılı" : "Konum"}{category === "Araç" ? <input name="locationOrYear" type="number" defaultValue={editing?.locationOrYear ?? new Date().getFullYear()} required /> : <select name="locationOrYear" defaultValue={editing?.locationOrYear ?? "Karaman"}>{turkeyCities.map((city) => <option key={city}>{city}</option>)}</select>}</label></div>
         <label>Açıklama<textarea name="description" rows={4} defaultValue={editing?.description ?? ""} placeholder="Öne çıkan özellikleri ve detayları yazın." /></label>
-        <div className="listing-photo-uploader"><div className="photo-upload-heading"><div><strong>Fotoğraflar</strong><small>İlk fotoğraf kapak olur. Fotoğraf ekleyebilir, silebilir veya kapağı değiştirebilirsiniz.</small></div><span>{existingPhotos.length + photos.length}/{maxPhotoCount}</span></div>
-          {existingPhotos.length > 0 && <div className="photo-preview-grid">{existingPhotos.map((photo, index) => <div className="photo-preview" key={photo.path || photo.url}><img src={photo.url} alt={`${index + 1}. mevcut fotoğraf`} /><span className="photo-position">{newPhotoIsCover ? photos.length + index + 1 : index + 1}. FOTOĞRAF</span>{!newPhotoIsCover && index === 0 && <span className="cover-label">KAPAK · ANA GÖRSEL</span>}<div className="photo-preview-actions">{(newPhotoIsCover || index > 0) && <button type="button" title="Kapak yap" onClick={() => makeExistingCover(index)}><Camera /></button>}<button type="button" title="Fotoğrafı sil" onClick={() => removeExistingPhoto(index)}><Trash2 /></button></div></div>)}</div>}
+        <div className="listing-photo-uploader"><div className="photo-upload-heading"><div><strong>Fotoğraflar</strong><small>Fotoğrafı fareyle tutup istediğiniz sıraya sürükleyin. İlk fotoğraf kapak olur.</small></div><span>{existingPhotos.length + photos.length}/{maxPhotoCount}</span></div>
+          {existingPhotos.length > 0 && <div className="photo-preview-grid">{existingPhotos.map((photo, index) => <div className={`photo-preview draggable-photo ${draggingPhoto?.group === "existing" && draggingPhoto.index === index ? "is-dragging" : ""}`} draggable onDragStart={() => setDraggingPhoto({group:"existing",index})} onDragEnd={() => setDraggingPhoto(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPhoto("existing", index)} key={photo.path || photo.url}><img src={photo.url} alt={`${index + 1}. mevcut fotoğraf`} draggable={false}/><span className="photo-position">{newPhotoIsCover ? photos.length + index + 1 : index + 1}. FOTOĞRAF</span><span className="drag-hint">SÜRÜKLE</span>{!newPhotoIsCover && index === 0 && <span className="cover-label">KAPAK · ANA GÖRSEL</span>}<div className="photo-preview-actions">{(newPhotoIsCover || index > 0) && <button type="button" title="Kapak yap" onClick={() => makeExistingCover(index)}><Camera /></button>}<button type="button" title="Fotoğrafı sil" onClick={() => removeExistingPhoto(index)}><Trash2 /></button></div></div>)}</div>}
           {existingPhotos.length + photos.length < maxPhotoCount && <label className="upload"><ImagePlus /><strong>Telefondan veya bilgisayardan fotoğraf seçin</strong><small>Tüm görsel biçimleri · fotoğraf başına en fazla 600 MB</small><input type="file" accept="image/*" multiple onChange={addPhotos} /></label>}
-          {photos.length > 0 && <div className="photo-preview-grid">{photos.map((photo, index) => <div className="photo-preview" key={`${photo.name}-${index}`}><img src={photo.url} alt={`${index + 1}. yeni fotoğraf önizlemesi`} /><span className="photo-position">{newPhotoIsCover ? index + 1 : existingPhotos.length + index + 1}. FOTOĞRAF</span>{index === 0 && (newPhotoIsCover || existingPhotos.length === 0) && <span className="cover-label">KAPAK · ANA GÖRSEL</span>}<div className="photo-preview-actions">{(!(index === 0 && newPhotoIsCover) && (existingPhotos.length > 0 || index > 0)) && <button type="button" title="Kapak yap" onClick={() => makeNewCover(index)}><Camera /></button>}<button type="button" title="Kaldır" onClick={() => removePhoto(index)}><X /></button></div></div>)}</div>}
+          {photos.length > 0 && <div className="photo-preview-grid">{photos.map((photo, index) => <div className={`photo-preview draggable-photo ${draggingPhoto?.group === "new" && draggingPhoto.index === index ? "is-dragging" : ""}`} draggable onDragStart={() => setDraggingPhoto({group:"new",index})} onDragEnd={() => setDraggingPhoto(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPhoto("new", index)} key={`${photo.name}-${photo.url}`}><img src={photo.url} alt={`${index + 1}. yeni fotoğraf önizlemesi`} draggable={false}/><span className="photo-position">{newPhotoIsCover ? index + 1 : existingPhotos.length + index + 1}. FOTOĞRAF</span><span className="drag-hint">SÜRÜKLE</span>{index === 0 && (newPhotoIsCover || existingPhotos.length === 0) && <span className="cover-label">KAPAK · ANA GÖRSEL</span>}<div className="photo-preview-actions">{(!(index === 0 && newPhotoIsCover) && (existingPhotos.length > 0 || index > 0)) && <button type="button" title="Kapak yap" onClick={() => makeNewCover(index)}><Camera /></button>}<button type="button" title="Kaldır" onClick={() => removePhoto(index)}><X /></button></div></div>)}</div>}
         </div>
         <div className="modal-actions"><button type="button" onClick={closeModal}>Vazgeç</button><button type="submit" disabled={busy}><Check />{busy ? "Kaydediliyor..." : editing ? "Değişiklikleri Kaydet" : "Yayınla"}</button></div>
       </form></div></div>}

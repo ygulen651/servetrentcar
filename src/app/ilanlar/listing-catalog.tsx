@@ -10,10 +10,10 @@ function amount(value: string) {
   return Number(value.replace(/[^0-9]/g, "")) || 0;
 }
 
-export function ListingCatalog({ items }: { items: Listing[] }) {
+export function ListingCatalog({ items, fixedStatus }: { items: Listing[]; fixedStatus?: "Satılık" | "Kiralık" }) {
   const [code, setCode] = useState("");
   const [propertyType, setPropertyType] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(fixedStatus ?? "");
   const [district, setDistrict] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -49,7 +49,7 @@ export function ListingCatalog({ items }: { items: Listing[] }) {
       <div className="v10-filter-body">
         <label>İlan Kodu<input value={code} onChange={(e) => setCode(e.target.value)} /></label>
         <label>Emlak Türü<select value={propertyType} onChange={(e) => setPropertyType(e.target.value)}><option value="">Seçiniz</option>{propertyTypes.map((value) => <option key={value}>{value}</option>)}</select></label>
-        <label>İlan Durumu<select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Seçiniz</option>{statuses.map((value) => <option key={value}>{value}</option>)}</select></label>
+        {!fixedStatus && <label>İlan Durumu<select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Seçiniz</option>{statuses.map((value) => <option key={value}>{value}</option>)}</select></label>}
         <label>Semt Seçin<select value={district} onChange={(e) => setDistrict(e.target.value)}><option value="">İlçe Seçiniz</option>{districts.map((value) => <option key={value}>{value}</option>)}</select></label>
         <div className="v10-filter-pair"><label>Düşük Fiyat<input inputMode="numeric" value={minPrice} onChange={(e) => setMinPrice(e.target.value.replace(/\D/g, ""))}/></label><label>Yüksek Fiyat<input inputMode="numeric" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value.replace(/\D/g, ""))}/></label></div>
         <div className="v10-filter-pair"><label>Metrekare Aralığı<input inputMode="numeric" value={minArea} onChange={(e) => setMinArea(e.target.value.replace(/\D/g, ""))}/></label><label><span aria-hidden="true">&nbsp;</span><input inputMode="numeric" value={maxArea} onChange={(e) => setMaxArea(e.target.value.replace(/\D/g, ""))}/></label></div>

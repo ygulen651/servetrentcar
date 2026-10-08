@@ -5,6 +5,8 @@ Servet, Karaman'da emlak danışmanlığı, inşaat ve araç kiralama hizmetleri
 ## Ana sayfalar
 - /: Kurumsal bilgiler ve güncel portföy
 - /ilanlar: Satılık ve kiralık emlak ilanları
+- /satilik: Yalnızca satılık emlak ilanları
+- /kiralik: Yalnızca kiralık emlak ilanları
 - /arac-kiralama: Kiralık araç filosu ve müsaitlik
 - /gizlilik: Gizlilik politikası
 - /kullanim-sartlari: Kullanım şartları

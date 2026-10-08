@@ -14,7 +14,7 @@ export function Header({ content }: { content?: SiteContent }) {
     </div>
     <header className="site-header">
       <Link href="/" className="brand" aria-label="Servet Emlak ana sayfa">
-        <span className="brand-mark">SE</span>
+        <span className="brand-mark">S</span>
         <span>
           <strong>SERVET EMLAK</strong>
           <small>{content?.brandSubtitle ?? "EMLAK · RENT A CAR · İNŞAAT"}</small>
@@ -23,14 +23,17 @@ export function Header({ content }: { content?: SiteContent }) {
       <nav className={open ? "nav open" : "nav"} aria-label="Site navigasyonu">
         <Link href="/">{content?.navHome ?? "Ana Sayfa"}</Link>
         <Link href="/#hakkimizda">Kurumsal</Link>
-        <Link href="/ilanlar">Kiralıklar</Link>
-        <Link href="/ilanlar">Satılıklar</Link>
+        <Link href="/kiralik">Kiralıklar</Link>
+        <Link href="/satilik">Satılıklar</Link>
         <Link href="/arac-kiralama">Rent A Car</Link>
         <Link href="/#blog">Blog</Link>
         <Link href="/#iletisim">{content?.navContact ?? "İletişim"}</Link>
+        <a className="nav-phone-link" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35"><Phone size={16}/>0535 426 62 35</a>
+        <a className="nav-phone-link" href="tel:+905051977070" aria-label="Telefon: 0505 197 70 70"><Phone size={16}/>0505 197 70 70</a>
       </nav>
       <div className="header-phones" aria-label="Telefon numaraları">
-        <a className="header-phone" href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35"><Phone size={18}/><span><small>BİZİ ARAYIN</small>0535 426 62 35</span></a>
+        <Phone className="header-phone-icon" size={18}/>
+        <span className="header-phone-list"><small>BİZİ ARAYIN</small><a href="tel:+905354266235" aria-label="Telefon: 0535 426 62 35">0535 426 62 35</a><a href="tel:+905051977070" aria-label="Telefon: 0505 197 70 70">0505 197 70 70</a></span>
       </div>
       <button className="menu-button" onClick={() => setOpen(!open)} aria-label="Menü aç">
         {open ? <X /> : <Menu />}
@@ -49,7 +52,8 @@ export function Footer({ content }: { content?: SiteContent }) {
         </div>
         <div>
           <h3>Hızlı Bağlantılar</h3>
-          <Link href="/ilanlar">Emlak İlanları</Link>
+          <Link href="/satilik">Satılık İlanlar</Link>
+          <Link href="/kiralik">Kiralık İlanlar</Link>
           <Link href="/arac-kiralama">Kiralık Araçlar</Link>
           <Link href="/#projeler">Projelerimiz</Link>
           <Link href="/gizlilik">Gizlilik Politikası</Link>
