@@ -61,7 +61,21 @@ function EstateRow({ title, accent, items }: { title: string; accent: string; it
 
 export default async function Home() {
   const [liveListings, content] = await Promise.all([getFirebaseListings(), getSiteContent()]);
-  const homepageSlides = slides.map((slide, index) => ({ ...slide, image: [content.homeHeroImageUrl, content.homeHeroImageUrl2, content.homeHeroImageUrl3, content.homeHeroImageUrl4, content.homeHeroImageUrl5][index] }));
+  const slideImages = [content.homeHeroImageUrl, content.homeHeroImageUrl2, content.homeHeroImageUrl3, content.homeHeroImageUrl4, content.homeHeroImageUrl5];
+  const slideCopy = [
+    [content.homeHeroSlide1Top, content.homeHeroSlide1Bottom],
+    [content.homeHeroSlide2Top, content.homeHeroSlide2Bottom],
+    [content.homeHeroSlide3Top, content.homeHeroSlide3Bottom],
+    [content.homeHeroSlide4Top, content.homeHeroSlide4Bottom],
+    [content.homeHeroSlide5Top, content.homeHeroSlide5Bottom],
+  ];
+  const homepageSlides = slides.map((slide, index) => ({
+    ...slide,
+    image: slideImages[index],
+    top: slideCopy[index][0],
+    bottom: slideCopy[index][1],
+    label: `${slideCopy[index][0]} ${slideCopy[index][1]}`,
+  }));
   const all = liveListings;
   const has = (item: Listing, word: string) => item.badge.toLocaleLowerCase("tr-TR").includes(word);
   const rentals = all.filter((item) => has(item, "kiralık")).slice(0, 4);
