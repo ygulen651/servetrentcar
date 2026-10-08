@@ -2,7 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
-import { Building2, Camera, CarFront, Check, ChevronDown, Eye, FileText, ImagePlus, LayoutDashboard, LogOut, Menu, Pencil, Plus, Search, Settings, Trash2, X } from "lucide-react";
+import { Building2, Camera, CarFront, Check, ChevronDown, Eye, FileText, ImagePlus, LayoutDashboard, LogOut, Menu, Pencil, Plus, Search, Settings, Star, Trash2, X } from "lucide-react";
 import { turkeyCities } from "../data";
 import { auth } from "@/lib/firebase";
 import { SiteContentEditor } from "./site-content-editor";
@@ -158,6 +158,8 @@ export default function AdminPage() {
   }), [items, search, view]);
   const emlakCount = items.filter((item) => item.category === "Emlak").length;
   const carCount = items.filter((item) => item.category === "Araç").length;
+  const availableCarCount = items.filter((item) => item.category === "Araç" && item.status !== "rented").length;
+  const recentItems = items.slice(0, 4);
   const title = view === "overview" ? "Genel Bakış" : view === "content" ? "Site Yazıları" : view === "Emlak" ? "Emlak İlanları" : "Araç Filosu";
 
   if (!authReady) return <main className="admin-login"><p>Yönetim paneli yükleniyor...</p></main>;
@@ -179,9 +181,27 @@ export default function AdminPage() {
         <a href="/" target="_blank"><Eye />Siteyi Görüntüle</a><a href="mailto:info@servetinsaat.com"><Settings />Destek</a>
       </nav><button className="logout" type="button" onClick={() => signOut(auth)}><LogOut />Çıkış Yap</button>
     </aside>
-    <main className="admin-main"><header><button className="admin-menu" aria-label="Menüyü aç" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}><Menu /></button><div><h1>{title}</h1><p>{items.length} içerik panelden yönetiliyor.</p></div><button className="admin-user" title={user.email ?? "Yönetici"}>{(user.email?.slice(0, 2) ?? "SS").toUpperCase()} <ChevronDown /></button></header>
+    <main className="admin-main"><header><button className="admin-menu" aria-label="Menüyü aç" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}><Menu /></button><div className="admin-header-spacer" /><a className="admin-site-link" href="/" target="_blank"><Eye /> Siteyi Gör</a><button className="admin-settings" type="button" title="Ayarlar" onClick={() => selectView("content")}><Settings /></button><button className="admin-user" title={user.email ?? "Yönetici"}><span>{(user.email?.slice(0, 1) ?? "S").toUpperCase()}</span><strong>Oturum</strong><ChevronDown /></button></header>
       <section className="admin-content">
-        {view === "content" ? <SiteContentEditor user={user} /> : <>
+        <div className="admin-page-heading"><div><span>YÖNETİM PANELİ</span><h1>{title}</h1></div><small>{view === "overview" ? "Genel Bakış" : title}</small></div>
+        {view === "content" ? <SiteContentEditor user={user} /> : view === "overview" ? <>
+          <div className="stats dashboard-stats">
+            <article className="stat-green"><span><Building2 /></span><div><strong>{emlakCount}</strong><small>Emlak Kaydı</small></div></article>
+            <article className="stat-blue"><span><CarFront /></span><div><strong>{carCount}</strong><small>Araç Kaydı</small></div></article>
+            <article className="stat-orange"><span><Star /></span><div><strong>{availableCarCount}</strong><small>Müsait Araç</small></div></article>
+            <article className="stat-purple"><span><FileText /></span><div><strong>{items.length}</strong><small>Toplam İçerik</small></div></article>
+          </div>
+          {message && <p className="admin-message" role="status">{message}</p>}
+          <section className="dashboard-panel overview-panel"><header><div><h2>Portföy Özeti</h2><p>Yayındaki emlak ve araç kayıtları</p></div><button type="button" onClick={() => selectView("Emlak")}>Tüm Kayıtları Gör</button></header><div className="portfolio-summary">
+            <article><small>EMLAK PORTFÖYÜ</small><strong>{emlakCount} aktif kayıt</strong><span>Satılık ve kiralık ilanlar</span></article>
+            <article><small>ARAÇ FİLOSU</small><strong>{carCount} araç</strong><span>{availableCarCount} araç şu an müsait</span></article>
+            <article><small>TOPLAM İÇERİK</small><strong>{items.length} kayıt</strong><span>Tüm içerikler tek panelde</span></article>
+          </div></section>
+          <div className="dashboard-lower">
+            <section className="dashboard-panel recent-panel"><header><div><h2>Son Kayıtlar</h2><p>Panele eklenen güncel içerikler</p></div></header><div className="recent-list">{recentItems.length ? recentItems.map((item, index) => <button type="button" key={item.id} onClick={() => openEdit(item)}><i className={item.category === "Emlak" ? "green" : "blue"} /><span><strong>{item.title}</strong><small>{item.category} · {item.locationOrYear}</small></span><time>{index === 0 ? "Yeni" : `${index + 1}. kayıt`}</time></button>) : <p className="dashboard-empty">Henüz kayıt eklenmedi.</p>}</div></section>
+            <section className="dashboard-panel quick-panel"><header><div><h2>Hızlı İşlemler</h2><p>Sık kullanılan kısayollar</p></div></header><div><button type="button" className="primary" onClick={() => openCreate("Emlak")}><Plus /> Yeni Emlak</button><button type="button" onClick={() => openCreate("Araç")}><Plus /> Yeni Araç</button><button type="button" onClick={() => selectView("content")}><FileText /> Site Yazıları</button><a href="/" target="_blank"><Eye /> Siteyi Gör</a></div></section>
+          </div>
+        </> : <>
         <div className="stats"><article><span><Building2 /></span><div><small>Yayındaki emlak ilanı</small><strong>{emlakCount}</strong></div></article><article><span><CarFront /></span><div><small>Filodaki araç</small><strong>{carCount}</strong></div></article><article><span><Check /></span><div><small>Toplam yönetilen içerik</small><strong>{items.length}</strong></div></article></div>
         <div className="admin-toolbar"><div><h2>{title}</h2><p>İçerikleri arayın, düzenleyin veya yayından kaldırın.</p></div><button onClick={() => openCreate(view === "Araç" ? "Araç" : "Emlak")}><Plus /> Yeni {view === "Araç" ? "Araç" : "İlan"}</button></div>
         {message && <p className="admin-message" role="status">{message}</p>}

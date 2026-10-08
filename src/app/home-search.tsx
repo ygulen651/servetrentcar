@@ -36,8 +36,8 @@ export function HomeSearch({ items }: { items: SearchItem[] }) {
 
   return <form className="search-panel home-live-search shell" role="search" onSubmit={submit}>
     <div className="home-search-field">
-      <label htmlFor="home-search">İlan veya araç ara</label>
-      <span><Search aria-hidden="true" /><input id="home-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Örn. kiralık araç, satılık daire, Karaman..." autoComplete="off" /></span>
+      <label className="sr-only" htmlFor="home-search">İlan veya araç ara</label>
+      <span><Search aria-hidden="true" /><input id="home-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Kelime yazın; satılık daire, arsa veya kiralık araç arayın" autoComplete="off" /></span>
       {query && <button className="search-clear" type="button" onClick={() => setQuery("")} aria-label="Aramayı temizle"><X /></button>}
     </div>
     <button className="search-button" type="submit" disabled={!results.length}>Ara <ArrowRight /></button>

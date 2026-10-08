@@ -1,16 +1,17 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CarFront, CheckCircle2, HardHat, MapPin, Phone } from "lucide-react";
+import { ArrowRight, Building2, CalendarCheck2, CarFront, CheckCircle2, HardHat, House, LandPlot, MapPin, Phone, Store, UsersRound } from "lucide-react";
 import { Footer, Header, WhatsApp } from "./components";
 import { HomeSearch } from "./home-search";
 import { projects } from "./data";
-import { getFirebaseListings, getFirebaseSearchItems } from "@/lib/firebase-data";
+import { getFirebaseListings, getFirebaseRentalCars, getFirebaseSearchItems } from "@/lib/firebase-data";
 import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [listings, searchItems, content] = await Promise.all([
+  const [listings, cars, searchItems, content] = await Promise.all([
     getFirebaseListings().then((items) => items.slice(0, 3)),
+    getFirebaseRentalCars().then((items) => items.slice(0, 3)),
     getFirebaseSearchItems(),
     getSiteContent(),
   ]);
@@ -25,6 +26,7 @@ export default async function Home() {
           <Link className="button gold fade-in-up" href="/ilanlar">{content.homeListingsButton} <ArrowRight size={18}/></Link>
           <a className="button ghost fade-in-up" href="tel:+905354266235"><Phone size={18}/> {content.homeCallButton}</a>
         </div>
+        <div className="hero-stats"><span>{listings.length}+ SEÇKİN İLAN</span><span>3 GÜÇLÜ HİZMET</span><span>KARAMAN&apos;DA YEREL DENEYİM</span></div>
       </div>
       <HomeSearch items={searchItems} />
     </section>
@@ -34,57 +36,48 @@ export default async function Home() {
     <section className="services-wrap"><div className="services shell">
       <div className="section-heading">
         <div>
-          <p className="eyebrow dark">{content.servicesEyebrow}</p>
-          <h2 className="editable-lines">{content.servicesTitle}</h2>
+          <p className="eyebrow dark">SERVET RENT A CAR</p>
+          <h2>Kiralık araçlarımız</h2>
         </div>
-        <p>{content.servicesText}</p>
+        <p>Bakımlı, konforlu ve ihtiyacınıza uygun araçlarımızı inceleyin.</p>
       </div>
-      <div className="service-grid">
-        <article className="service-item fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <Building2 className="service-icon" />
-          <span>01</span>
-          <h3>{content.realEstateTitle}</h3>
-          <p>{content.realEstateText}</p>
-          <Link href="/ilanlar">İlanları gör <ArrowRight size={16}/></Link>
-        </article>
-        <article className="service-item fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <HardHat className="service-icon" />
-          <span>02</span>
-          <h3>{content.constructionTitle}</h3>
-          <p>{content.constructionText}</p>
-          <Link href="#projeler">Projeleri gör <ArrowRight size={16}/></Link>
-        </article>
-        <article className="service-item fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <CarFront className="service-icon" />
-          <span>03</span>
-          <h3>{content.rentalServiceTitle}</h3>
-          <p>{content.rentalServiceText}</p>
-          <Link href="/arac-kiralama">Araçları gör <ArrowRight size={16}/></Link>
-        </article>
+      <div className="home-car-grid">
+        {cars.map((car, index) => <Link href={`/arac-kiralama/${car.id}`} className="home-car-card fade-in-up" style={{ animationDelay: `${(index + 1) * .1}s` }} key={car.id}>
+          <div className="home-car-image" style={{ backgroundImage: `url(${car.image})` }}><span className={car.status === "available" ? "available" : "rented"}>{car.status === "available" ? "MÜSAİT" : "KİRADA"}</span></div>
+          <div className="home-car-body"><small>Servet Rent A Car</small><h3>{car.name}</h3><div><span><CalendarCheck2 />{car.year}</span><span><UsersRound />{car.seats}</span></div><strong>{car.model}<ArrowRight /></strong></div>
+        </Link>)}
+        {cars.length === 0 && <div className="home-car-empty"><CarFront/><p>Yeni araçlarımız çok yakında burada.</p></div>}
       </div>
+      <div className="home-car-all"><Link href="/arac-kiralama">Tüm araçları incele <ArrowRight /></Link></div>
     </div></section>
 
     <section className="listings-section">
       <div className="shell">
-        <div className="section-title-row">
+        <div className="section-title-row featured-title">
           <div>
-            <p className="eyebrow dark">GÜNCEL PORTFÖY</p>
             <h2>Öne çıkan ilanlar</h2>
+            <p>Karaman merkez ve ilçelerinde yatırımınıza değer katacak seçkin gayrimenkulleri keşfedin.</p>
           </div>
           <Link href="/ilanlar">Tüm ilanlar <ArrowRight size={18}/></Link>
         </div>
+        <nav className="listing-categories" aria-label="İlan kategorileri">
+          <Link href="/ilanlar"><Building2/><span>Tümü</span></Link>
+          <Link href="/ilanlar"><House/><span>Satılık Konut</span></Link>
+          <Link href="/ilanlar"><LandPlot/><span>Satılık Arsa</span></Link>
+          <Link href="/ilanlar"><Store/><span>Satılık İşyeri</span></Link>
+        </nav>
         <div className="listing-grid">
           {listings.map((item) => <Link href={`/ilanlar/${item.id}`} className="listing-card fade-in" style={{ animationDelay: `${item.id.length * 0.1}s` }} key={item.id}>
             <div className="listing-image" role="img" aria-label={`${item.title} ilan fotoğrafı`} style={{ backgroundImage: `url(${item.image})` }}>
               <span>{item.badge}</span>
-              <small>{item.id}</small>
+              <b>{item.price}</b>
             </div>
             <div className="listing-body">
               <p className="listing-type">{item.type}</p>
               <h3>{item.title}</h3>
               <p className="location"><MapPin size={15}/>{item.location}</p>
               <div className="meta">{item.meta.map(x => <span key={x}>{x}</span>)}</div>
-              <div className="price">{item.price}<ArrowRight size={20}/></div>
+              <div className="price">İlanı incele<ArrowRight size={20}/></div>
             </div>
           </Link>)}
         </div>
